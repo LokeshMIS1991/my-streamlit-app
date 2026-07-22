@@ -3,14 +3,20 @@ import pandas as pd
 from datetime import datetime
 
 # Page Configuration
-st.set_page_config(page_title="TechFlow CRM - FieldOps", layout="wide")
+st.set_page_config(
+    page_title="Sidharth Shutter & Automation CRM", 
+    page_icon="🛠️", 
+    layout="wide"
+)
 
-# App Header & Branding
-st.title("🛠️ TechFlow CRM — Field Operations Portal")
+# ---------------------------------------------------------
+# APP HEADER & BRANDING
+# ---------------------------------------------------------
+# Sidebar Branding
+st.sidebar.title("🏢 Sidharth Shutter")
+st.sidebar.subheader("& Automation")
+st.sidebar.markdown("---")
 
-# Sidebar Navigation
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/1055/1055644.png", width=70)
-st.sidebar.title("Navigation")
 user_role = st.sidebar.radio("Choose Section:", [
     "📈 Executive Dashboard",
     "👔 Manager - Create / Edit Job", 
@@ -20,7 +26,12 @@ user_role = st.sidebar.radio("Choose Section:", [
 ])
 
 st.sidebar.markdown("---")
-st.sidebar.caption("TechFlow CRM v1.0")
+st.sidebar.caption("© Sidharth Shutter & Automation v1.0")
+
+# Main Page Header
+st.title("🛠️ Sidharth Shutter & Automation")
+st.caption("Field Operations & Technician Service CRM Portal")
+st.markdown("---")
 
 # Indian States List
 INDIAN_STATES = [
