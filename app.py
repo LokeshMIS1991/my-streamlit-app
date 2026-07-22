@@ -12,7 +12,7 @@ st.title("🛠️ TechFlow CRM — Field Operations Portal")
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/1055/1055644.png", width=70)
 st.sidebar.title("Navigation")
 user_role = st.sidebar.radio("Choose Section:", [
-    "👔 Manager - Create Job", 
+    "👔 Manager - Create / Edit Job", 
     "🔧 Technician - Job Visit", 
     "📊 View All Jobs (Master Sheet)",
     "📜 View Visit History Database"
@@ -124,67 +124,129 @@ def sync_master_status(job_id):
             st.session_state["master_data"].at[m_idx, "Close Date"] = "N/A"
 
 # ---------------------------------------------------------
-# MODULE 1: MANAGER PORTAL (Create New Job)
+# MODULE 1: MANAGER PORTAL (Create & Edit Job Entry)
 # ---------------------------------------------------------
-if user_role == "👔 Manager - Create Job":
-    st.subheader("📋 Create New Job / Complaint Entry")
+if user_role == "👔 Manager - Create / Edit Job":
+    st.subheader("📋 Manager Operations Portal")
     
-    existing_jobs = len(st.session_state["master_data"])
-    auto_job_id = f"JS-{101 + existing_jobs}"
-    current_now = datetime.now()
-    auto_date = current_now.strftime("%d-%b-%Y")
-    auto_month = current_now.strftime("%B")
+    tab1, tab2 = st.tabs(["➕ Create New Job Sheet", "✏️ Search & Edit Job Details"])
+    
+    # ------------------ TAB 1: CREATE JOB ------------------
+    with tab1:
+        existing_jobs = len(st.session_state["master_data"])
+        auto_job_id = f"JS-{101 + existing_jobs}"
+        current_now = datetime.now()
+        auto_date = current_now.strftime("%d-%b-%Y")
+        auto_month = current_now.strftime("%B")
 
-    st.info(f"⚡ **Auto Generated Details:** Job ID: **{auto_job_id}** | Date: **{auto_date}** | Month: **{auto_month}**")
+        st.info(f"⚡ **Auto Generated Details:** Job ID: **{auto_job_id}** | Date: **{auto_date}** | Month: **{auto_month}**")
 
-    with st.form("new_job_form", clear_on_submit=True):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            client_name = st.text_input("Client Name*")
-            project_name = st.text_input("Project Name (Optional)", value="N/A")
-            contact_number = st.text_input("Contact Number*")
-            address = st.text_area("Full Address*")
-            location = st.text_input("City / Zone Location*")
-            state = st.selectbox("State*", INDIAN_STATES, index=INDIAN_STATES.index("Rajasthan") if "Rajasthan" in INDIAN_STATES else 0)
+        with st.form("new_job_form", clear_on_submit=True):
+            col1, col2 = st.columns(2)
             
-        with col2:
-            product = st.selectbox("Product Category*", PRODUCT_LIST)
-            job_category = st.selectbox("Job Category (Service Type)*", ["Complaint", "New Installation"])
-            service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service"])
-            qty = st.number_input("Quantity (QTY)*", min_value=1, value=1, step=1)
-            office_remark = st.text_area("Initial Job Remark / Issue Description (For Installer)*")
-
-        submit_job = st.form_submit_button("🚀 Generate Job Sheet")
-
-        if submit_job:
-            if not client_name or not contact_number or not address or not office_remark:
-                st.error("⚠️ Please fill all mandatory fields (Client Name, Contact, Address, Initial Remark)!")
-            else:
-                new_row = {
-                    "Job Sheet No": auto_job_id,
-                    "Date": auto_date,
-                    "Month": auto_month,
-                    "Client Name": client_name,
-                    "Project Name": project_name,
-                    "Contact Number": contact_number,
-                    "Address": address,
-                    "Location": location,
-                    "State": state,
-                    "Product": product,
-                    "Job Category": job_category,
-                    "Service Scope": service_scope,
-                    "QTY": qty,
-                    "Office Remark": office_remark,
-                    "Current Status": "Pending",
-                    "Total Visits": 0,
-                    "Final Installer": "Not Assigned",
-                    "Close Date": "N/A"
-                }
-                st.session_state["master_data"] = pd.concat([st.session_state["master_data"], pd.DataFrame([new_row])], ignore_index=True)
+            with col1:
+                client_name = st.text_input("Client Name*")
+                project_name = st.text_input("Project Name (Optional)", value="N/A")
+                contact_number = st.text_input("Contact Number*")
+                address = st.text_area("Full Address*")
+                location = st.text_input("City / Zone Location*")
+                state = st.selectbox("State*", INDIAN_STATES, index=INDIAN_STATES.index("Rajasthan") if "Rajasthan" in INDIAN_STATES else 0)
                 
-                st.success(f"🎉 Job Sheet Successfully Created!")
-                st.code(f"Job Sheet ID: {auto_job_id}\nClient: {client_name}\nContact: {contact_number}\nProduct: {product}", language="markdown")
+            with col2:
+                product = st.selectbox("Product Category*", PRODUCT_LIST)
+                job_category = st.selectbox("Job Category (Service Type)*", ["Complaint", "New Installation"])
+                service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service"])
+                qty = st.number_input("Quantity (QTY)*", min_value=1, value=1, step=1)
+                office_remark = st.text_area("Initial Job Remark / Issue Description (For Installer)*")
+
+            submit_job = st.form_submit_button("🚀 Generate Job Sheet")
+
+            if submit_job:
+                if not client_name or not contact_number or not address or not office_remark:
+                    st.error("⚠️ Please fill all mandatory fields (Client Name, Contact, Address, Initial Remark)!")
+                else:
+                    new_row = {
+                        "Job Sheet No": auto_job_id,
+                        "Date": auto_date,
+                        "Month": auto_month,
+                        "Client Name": client_name,
+                        "Project Name": project_name,
+                        "Contact Number": contact_number,
+                        "Address": address,
+                        "Location": location,
+                        "State": state,
+                        "Product": product,
+                        "Job Category": job_category,
+                        "Service Scope": service_scope,
+                        "QTY": qty,
+                        "Office Remark": office_remark,
+                        "Current Status": "Pending",
+                        "Total Visits": 0,
+                        "Final Installer": "Not Assigned",
+                        "Close Date": "N/A"
+                    }
+                    st.session_state["master_data"] = pd.concat([st.session_state["master_data"], pd.DataFrame([new_row])], ignore_index=True)
+                    st.success(f"🎉 Job Sheet **{auto_job_id}** Successfully Created!")
+                    st.code(f"Job Sheet ID: {auto_job_id}\nClient: {client_name}\nContact: {contact_number}\nProduct: {product}", language="markdown")
+
+    # ------------------ TAB 2: EDIT EXISTING JOB ------------------
+    with tab2:
+        search_edit_id = st.text_input("Enter Job Sheet No to Edit (e.g. JS-101):").strip().upper()
+        
+        if search_edit_id:
+            m_df = st.session_state["master_data"]
+            match = m_df[m_df["Job Sheet No"] == search_edit_id]
+            
+            if not match.empty:
+                idx = match.index[0]
+                job_row = match.iloc[0]
+                st.warning(f"✏️ Editing Job Sheet: **{search_edit_id}** ({job_row['Client Name']})")
+                
+                with st.form("edit_job_sheet_form"):
+                    e_col1, e_col2 = st.columns(2)
+                    
+                    with e_col1:
+                        e_client = st.text_input("Client Name", value=job_row["Client Name"])
+                        e_project = st.text_input("Project Name", value=job_row["Project Name"])
+                        e_contact = st.text_input("Contact Number", value=job_row["Contact Number"])
+                        e_address = st.text_area("Full Address", value=job_row["Address"])
+                        e_location = st.text_input("City / Zone Location", value=job_row["Location"])
+                        
+                        curr_state_idx = INDIAN_STATES.index(job_row["State"]) if job_row["State"] in INDIAN_STATES else 0
+                        e_state = st.selectbox("State", INDIAN_STATES, index=curr_state_idx)
+                        
+                    with e_col2:
+                        curr_prod_idx = PRODUCT_LIST.index(job_row["Product"]) if job_row["Product"] in PRODUCT_LIST else 0
+                        e_product = st.selectbox("Product Category", PRODUCT_LIST, index=curr_prod_idx)
+                        
+                        e_cat = st.selectbox("Job Category", ["Complaint", "New Installation"], index=0 if job_row["Job Category"]=="Complaint" else 1)
+                        
+                        scopes = ["Installation", "Dealer", "General Service"]
+                        curr_scope_idx = scopes.index(job_row["Service Scope"]) if job_row["Service Scope"] in scopes else 0
+                        e_scope = st.selectbox("Service Scope", scopes, index=curr_scope_idx)
+                        
+                        e_qty = st.number_input("Quantity", min_value=1, value=int(job_row["QTY"]), step=1)
+                        e_remark = st.text_area("Office Remark", value=job_row["Office Remark"])
+
+                    update_master_btn = st.form_submit_button("💾 Save Updated Job Details")
+
+                    if update_master_btn:
+                        st.session_state["master_data"].at[idx, "Client Name"] = e_client
+                        st.session_state["master_data"].at[idx, "Project Name"] = e_project
+                        st.session_state["master_data"].at[idx, "Contact Number"] = e_contact
+                        st.session_state["master_data"].at[idx, "Address"] = e_address
+                        st.session_state["master_data"].at[idx, "Location"] = e_location
+                        st.session_state["master_data"].at[idx, "State"] = e_state
+                        st.session_state["master_data"].at[idx, "Product"] = e_product
+                        st.session_state["master_data"].at[idx, "Job Category"] = e_cat
+                        st.session_state["master_data"].at[idx, "Service Scope"] = e_scope
+                        st.session_state["master_data"].at[idx, "QTY"] = e_qty
+                        st.session_state["master_data"].at[idx, "Office Remark"] = e_remark
+                        
+                        st.success(f"✅ Job Details for **{search_edit_id}** updated successfully!")
+                        st.rerun()
+            else:
+                st.error(f"❌ No Job Sheet found with ID: '{search_edit_id}'")
 
 # ---------------------------------------------------------
 # MODULE 2: TECHNICIAN PORTAL (Job Search, Visit Entry & Edit)
@@ -248,7 +310,7 @@ elif user_role == "🔧 Technician - Job Visit":
                         if edit_btn:
                             st.session_state["editing_visit_no"] = v_no
 
-                    # EDIT FORM EXPANDER (Triggered on click)
+                    # EDIT FORM EXPANDER
                     if st.session_state.get("editing_visit_no") == v_no:
                         with st.expander(f"🛠️ Edit Details for Visit #{v_no}", expanded=True):
                             with st.form(f"edit_form_{v_no}"):
@@ -275,7 +337,6 @@ elif user_role == "🔧 Technician - Job Visit":
                                     st.session_state["visit_history"].at[v_idx, "Doc No"] = edit_doc
                                     st.session_state["visit_history"].at[v_idx, "Remarks"] = edit_remarks
                                     
-                                    # Sync with Master Sheet
                                     sync_master_status(search_job_id)
                                     
                                     st.session_state["editing_visit_no"] = None
@@ -345,7 +406,6 @@ elif user_role == "🔧 Technician - Job Visit":
                         }
                         st.session_state["visit_history"] = pd.concat([st.session_state["visit_history"], pd.DataFrame([new_visit_row])], ignore_index=True)
 
-                        # Sync with Master Sheet
                         sync_master_status(search_job_id)
                         
                         st.balloons()
