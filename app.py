@@ -10,28 +10,112 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# APP HEADER & BRANDING
+# DIRECT LOGO (Base64 Render) & CUSTOM CSS STYLING
 # ---------------------------------------------------------
-# Sidebar Branding
-st.sidebar.title("🏢 Sidharth Shutter")
-st.sidebar.subheader("& Automation")
-st.sidebar.markdown("---")
+# Embedded High-Res Logo
+LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAR8AAABACAYAAADy6Gv4AAAACXBIWXMAAAsTAAALEwEAmpwYAAAKT2lDQ1BQaG90b3Nob3AgSUNDIFByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iAl86oA04vAlJInUQQESgiBtAg4oDAgEUM4q4CS1kUG6yI4gid4DYWFAUJAkcERsplit3ACyIR4f5Y28y8fy75P3337W33vfc28AAtAK3i8nnYAgAyA0KGh44OC89vGh4A7B8Aw8AMACAgB8P75JkAYC883i3XvwDA1n36klAnAC3p8wA3Bzg8AEC3AE5mdAIA8AkAnpOTMAMADgF4P9mEZAyA2AEg8mBAjAIAZADAZI3AkgGACQBIR3Y2BwBMAFA/W2U+AABTAA4GAIYIAEAGAD4L4B8A2AMAPw3gXABQAwA2AGgBgAnAHwCwAgAtAIAWADsA4AnACQCFAeABAH4CwGIAJACABgBoAYAegAoAnAFAagBqAEEA4BUAwAIAcAFgGAB4AGACAE4ARAB8ANAAIAUAMQCQB4AcAFAHQBUAxgB4AKACgAgAGQC8AFAJAEkARACMAfAAQAcA0AEAZQDoAeAEAGUAeACgDgBFAKAAIA4AlgDAA8B/AegBQB8AhAHgBwD2AKACgI8AmACADgCcAHAAwAoAugC8AGAGAG4AwAQA2AEAGwAwAYAgAHA/AEYAsAHAEQCYAIAWAJ4AeAHACAD8AGAGAAYAMAMAIwCwA4AjAHA/AHAAwAcAhwBsAgAXAN4AgAEAdQCwAQAJAEQA2AEAYAA="
 
-user_role = st.sidebar.radio("Choose Section:", [
-    "📈 Executive Dashboard",
-    "👔 Manager - Create / Edit Job", 
-    "🔧 Technician - Job Visit", 
-    "📊 View All Jobs (Master Sheet)",
-    "📜 View Visit History Database"
-])
+custom_css = """
+<style>
+    /* Main Background & Fonts */
+    .stApp {
+        background-color: #F8FAFC;
+    }
+    
+    /* Header Container */
+    .brand-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background: white;
+        padding: 20px 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-left: 6px solid #0B3C5D;
+        margin-bottom: 25px;
+    }
+    .brand-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #0B3C5D;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .brand-subtitle {
+        font-size: 14px;
+        color: #64748B;
+        margin: 0;
+        font-weight: 500;
+    }
 
-st.sidebar.markdown("---")
-st.sidebar.caption("© Sidharth Shutter & Automation v1.0")
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #FFFFFF;
+        border-right: 1px solid #E2E8F0;
+    }
+    
+    /* Metric Cards Customization */
+    div[data-testid="stMetric"] {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
 
-# Main Page Header
-st.title("🛠️ Sidharth Shutter & Automation")
-st.caption("Field Operations & Technician Service CRM Portal")
-st.markdown("---")
+    /* Primary Accent Customization */
+    .stButton>button {
+        background-color: #0B3C5D;
+        color: white;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        padding: 10px 24px;
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #1D5D8A;
+        color: white;
+    }
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
+
+# ---------------------------------------------------------
+# SIDEBAR BRANDING
+# ---------------------------------------------------------
+with st.sidebar:
+    st.markdown("""
+        <div style="text-align: center; padding: 10px 0;">
+            <h2 style="color: #0B3C5D; font-size: 20px; margin: 0; font-weight: 800;">SIDHARTH</h2>
+            <p style="color: #32A852; font-size: 11px; margin: 0; font-weight: 700; letter-spacing: 1px;">SHUTTER & AUTOMATION</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    user_role = st.radio("Choose Section:", [
+        "📈 Executive Dashboard",
+        "👔 Manager - Create / Edit Job", 
+        "🔧 Technician - Job Visit", 
+        "📊 View All Jobs (Master Sheet)",
+        "📜 View Visit History Database"
+    ])
+
+    st.markdown("---")
+    st.caption("© Sidharth Shutter & Automation v1.0")
+
+# ---------------------------------------------------------
+# TOP APP HEADER WITH BRANDING
+# ---------------------------------------------------------
+st.markdown("""
+    <div class="brand-header">
+        <div>
+            <h1 class="brand-title">Sidharth Shutter & Automation</h1>
+            <p class="brand-subtitle">Field Operations & Technician Service Operations Portal</p>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
 # Indian States List
 INDIAN_STATES = [
@@ -132,18 +216,18 @@ if user_role == "📈 Executive Dashboard":
         st.markdown("### 🏷️ Jobs by Category")
         cat_counts = m_df["Job Category"].value_counts().reset_index()
         cat_counts.columns = ["Job Category", "Count"]
-        st.bar_chart(cat_counts.set_index("Job Category"), color="#36A2EB")
+        st.bar_chart(cat_counts.set_index("Job Category"), color="#0B3C5D")
         
         st.markdown("### 🗺️ State-wise Distribution")
         state_counts = m_df["State"].value_counts().reset_index()
         state_counts.columns = ["State", "Total Jobs"]
-        st.bar_chart(state_counts.set_index("State"), color="#FFCE56")
+        st.bar_chart(state_counts.set_index("State"), color="#32A852")
 
     with chart_col2:
         st.markdown("### 🎯 Jobs by Service Scope")
         scope_counts = m_df["Service Scope"].value_counts().reset_index()
         scope_counts.columns = ["Service Scope", "Count"]
-        st.bar_chart(scope_counts.set_index("Service Scope"), color="#4BC0C0")
+        st.bar_chart(scope_counts.set_index("Service Scope"), color="#1D5D8A")
         
         st.markdown("### 🛡️ Warranty Coverage Breakdown")
         war_counts = m_df["Warranty"].value_counts().reset_index()
@@ -348,10 +432,8 @@ elif user_role == "🔧 Technician - Job Visit":
                 next_visit_no = len(previous_visits) + 1
                 st.subheader(f"📝 Submit New Visit Report (Visit #{next_visit_no})")
                 
-                # Dynamic Status Selector Outside Form for Reactivity
                 status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"], key="live_status_select")
 
-                # Dynamic Payment Mode Selector
                 pay_col1, pay_col2 = st.columns(2)
                 with pay_col1:
                     payment_mode = st.selectbox("Payment Mode*", PAYMENT_MODES, key="pay_mode_select")
