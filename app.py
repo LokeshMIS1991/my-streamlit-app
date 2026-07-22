@@ -246,7 +246,7 @@ if user_role == "👔 Manager - Create / Edit Job":
                         st.success(f"✅ Details for **{search_edit_id}** updated successfully!")
                         st.rerun()
             else:
-                st.error(f"❌ No Record found with JS ID: '{search_edit_id}'")
+                st.error(f"❌ No record found with JS ID: '{search_edit_id}'")
 
 # ---------------------------------------------------------
 # MODULE 2: TECHNICIAN PORTAL (Job Search, Visit Entry & Edit)
@@ -262,6 +262,8 @@ elif user_role == "🔧 Technician - Job Visit":
         
         if not job_match.empty:
             job_details = job_match.iloc[0]
+            current_job_status = job_details["Current Status"]
+            
             st.success(f"Job Found: **{job_details['Client Name']}** ({job_details['JS ID']})")
             
             # Client & Job Details Header
@@ -346,72 +348,75 @@ elif user_role == "🔧 Technician - Job Visit":
                 st.info("ℹ️ No previous visit logs found for this JS ID. This will be Visit #1.")
             
             # -------------------------------------------------
-            # NEW VISIT REPORT ENTRY (WITH DYNAMIC FORM)
+            # NEW VISIT REPORT ENTRY FORM (CONDITIONALLY SHOWN)
             # -------------------------------------------------
-            next_visit_no = len(previous_visits) + 1
-            st.subheader(f"📝 Submit New Visit Report (Visit #{next_visit_no})")
-            
-            # Status Selection Outside Form for Real-time Dynamic UI Toggle
-            status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"], key="live_status_select")
-
-            with st.form("tech_visit_form"):
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    installer_name = st.text_input("Technician / Installer Name*")
-                    time_spent = st.selectbox("Time Spent on Site*", ["30 Mins", "1 Hour", "1.5 Hours", "2 Hours", "3+ Hours", "Full Day"])
+            if current_job_status == "Completed":
+                st.success("🎉 **This Job Sheet is officially CLOSED & COMPLETED!** No further visits are required for this JS ID.")
+            else:
+                next_visit_no = len(previous_visits) + 1
+                st.subheader(f"📝 Submit New Visit Report (Visit #{next_visit_no})")
                 
-                with col_b:
-                    pending_reason = "N/A"
-                    if status_update == "Pending":
-                        pending_reason = st.selectbox("Reason for Pending*", PENDING_REASONS)
-                    else:
-                        st.success("✅ Work completed on site!")
+                # Dynamic Status Selector
+                status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"], key="live_status_select")
 
-                visit_remarks = st.text_area("Visit Remarks / Work Done Notes*")
+                with st.form("tech_visit_form"):
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        installer_name = st.text_input("Technician / Installer Name*")
+                        time_spent = st.selectbox("Time Spent on Site*", ["30 Mins", "1 Hour", "1.5 Hours", "2 Hours", "3+ Hours", "Full Day"])
+                    
+                    with col_b:
+                        pending_reason = "N/A"
+                        if status_update == "Pending":
+                            pending_reason = st.selectbox("Reason for Pending*", PENDING_REASONS)
+                        else:
+                            st.success("✅ Complete status selected. Please fill paper slip & upload photo below.")
 
-                physical_job_no = "N/A"
-                photo_file = None
-                photo_url = "N/A"
-                
-                if status_update == "Completed":
-                    st.info("🔒 **Completion Protocol Active:** Physical Paper Slip No. & Photo Upload are required!")
-                    col_c, col_d = st.columns(2)
-                    with col_c:
-                        physical_job_no = st.text_input("Physical Paper Job Sheet Slip No.*")
-                    with col_d:
-                        photo_file = st.file_uploader("Upload Job Sheet / Work Photo*", type=["jpg", "png", "jpeg"])
+                    visit_remarks = st.text_area("Visit Remarks / Work Done Notes*")
 
-                submit_visit = st.form_submit_button("📤 Submit Visit Report")
+                    physical_job_no = "N/A"
+                    photo_file = None
+                    photo_url = "N/A"
+                    
+                    if status_update == "Completed":
+                        st.info("🔒 **Completion Protocol Active:** Physical Paper Slip No. & Photo Upload are required!")
+                        col_c, col_d = st.columns(2)
+                        with col_c:
+                            physical_job_no = st.text_input("Physical Paper Job Sheet Slip No.*")
+                        with col_d:
+                            photo_file = st.file_uploader("Upload Job Sheet / Work Photo*", type=["jpg", "png", "jpeg"])
 
-                if submit_visit:
-                    if not installer_name or not visit_remarks:
-                        st.error("⚠️ Technician Name and Remarks are required!")
-                    elif status_update == "Completed" and (not physical_job_no or photo_file is None):
-                        st.error("❌ Cannot complete job! Physical Job Sheet Slip No. and Photo are mandatory for completed status.")
-                    else:
-                        today_str = datetime.now().strftime("%d-%b-%Y")
-                        if photo_file is not None:
-                            photo_url = f"https://drive.google.com/uploaded_file_{physical_job_no}.jpg"
+                    submit_visit = st.form_submit_button("📤 Submit Visit Report")
 
-                        new_visit_row = {
-                            "JS ID": search_job_id,
-                            "Visit No": next_visit_no,
-                            "Visit Date": today_str,
-                            "Installer Name": installer_name,
-                            "Status": status_update,
-                            "Reason": pending_reason,
-                            "Time Spent": time_spent,
-                            "Remarks": visit_remarks,
-                            "Doc No": physical_job_no,
-                            "Photo URL": photo_url
-                        }
-                        st.session_state["visit_history"] = pd.concat([st.session_state["visit_history"], pd.DataFrame([new_visit_row])], ignore_index=True)
+                    if submit_visit:
+                        if not installer_name or not visit_remarks:
+                            st.error("⚠️ Technician Name and Remarks are required!")
+                        elif status_update == "Completed" and (not physical_job_no or photo_file is None):
+                            st.error("❌ Cannot complete job! Physical Job Sheet Slip No. and Photo are mandatory for completed status.")
+                        else:
+                            today_str = datetime.now().strftime("%d-%b-%Y")
+                            if photo_file is not None:
+                                photo_url = f"https://drive.google.com/uploaded_file_{physical_job_no}.jpg"
 
-                        sync_master_status(search_job_id)
-                        
-                        st.balloons()
-                        st.success(f"🎉 Visit #{next_visit_no} Report submitted for {search_job_id}!")
-                        st.rerun()
+                            new_visit_row = {
+                                "JS ID": search_job_id,
+                                "Visit No": next_visit_no,
+                                "Visit Date": today_str,
+                                "Installer Name": installer_name,
+                                "Status": status_update,
+                                "Reason": pending_reason,
+                                "Time Spent": time_spent,
+                                "Remarks": visit_remarks,
+                                "Doc No": physical_job_no,
+                                "Photo URL": photo_url
+                            }
+                            st.session_state["visit_history"] = pd.concat([st.session_state["visit_history"], pd.DataFrame([new_visit_row])], ignore_index=True)
+
+                            sync_master_status(search_job_id)
+                            
+                            st.balloons()
+                            st.success(f"🎉 Visit #{next_visit_no} Report submitted for {search_job_id}!")
+                            st.rerun()
         else:
             st.error(f"❌ No record found with JS ID: '{search_job_id}'")
 
