@@ -14,9 +14,19 @@ st.sidebar.title("Navigation")
 user_role = st.sidebar.radio("Choose Section:", ["👔 Manager - Create Job", "🔧 Technician - Job Visit", "📊 View All Jobs (Master Sheet)"])
 
 st.sidebar.markdown("---")
-st.sidebar.caption("TechFlow CRM v1.0 | Offline/Test Mode")
+st.sidebar.caption("TechFlow CRM v1.0")
 
-# Simulated Database (Dummy Data for testing format)
+# Indian States List
+INDIAN_STATES = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", 
+    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", 
+    "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
+    "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", 
+    "Delhi NCR", "Other"
+]
+
+# Simulated Database with New Column Structure
 if "master_data" not in st.session_state:
     st.session_state["master_data"] = pd.DataFrame([
         {
@@ -28,8 +38,12 @@ if "master_data" not in st.session_state:
             "Contact Number": "9876543210",
             "Address": "Malviya Nagar, Jaipur",
             "Location": "Jaipur",
+            "State": "Rajasthan",
             "Product": "Motorized Shutter",
-            "Complaint Type": "Remote Not Working",
+            "Job Category": "Complaint",
+            "Service Scope": "General Service",
+            "QTY": 1,
+            "Office Remark": "Remote control frequency issue and motor sensor jamming.",
             "Current Status": "Pending",
             "Total Visits": 1,
             "Final Installer": "Rahul Sharma",
@@ -60,20 +74,22 @@ if user_role == "👔 Manager - Create Job":
             project_name = st.text_input("Project Name (Optional)", value="N/A")
             contact_number = st.text_input("Contact Number*")
             address = st.text_area("Full Address*")
+            location = st.text_input("City / Zone Location*")
+            state = st.selectbox("State*", INDIAN_STATES, index=INDIAN_STATES.index("Rajasthan") if "Rajasthan" in INDIAN_STATES else 0)
             
         with col2:
-            location = st.text_input("City / Location Zone*")
-            product = st.selectbox("Product Category", ["Motorized Shutter", "Automatic Gate", "Rolling Shutter", "Sensor Door", "Other"])
-            complaint_type = st.selectbox("Complaint / Job Type", ["New Installation", "Remote Issue", "Motor Damage", "General Service", "Wiring Inspection"])
-            remarks = st.text_input("Initial Office Remarks (Optional)")
+            product = st.selectbox("Product Category*", ["Motorized Shutter", "Automatic Gate", "Rolling Shutter", "Sensor Door", "Other"])
+            job_category = st.selectbox("Job Category (Service Type)*", ["Complaint", "New Installation"])
+            service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service"])
+            qty = st.number_input("Quantity (QTY)*", min_value=1, value=1, step=1)
+            office_remark = st.text_area("Initial Job Remark / Issue Description (For Installer)*")
 
         submit_job = st.form_submit_button("🚀 Generate Job Sheet")
 
         if submit_job:
-            if not client_name or not contact_number or not address:
-                st.error("⚠️ Please fill all mandatory fields (Client Name, Contact, Address)!")
+            if not client_name or not contact_number or not address or not office_remark:
+                st.error("⚠️ Please fill all mandatory fields (Client Name, Contact, Address, Initial Remark)!")
             else:
-                # Add new row to temporary dataframe
                 new_row = {
                     "Job Sheet No": auto_job_id,
                     "Date": auto_date,
@@ -83,8 +99,12 @@ if user_role == "👔 Manager - Create Job":
                     "Contact Number": contact_number,
                     "Address": address,
                     "Location": location,
+                    "State": state,
                     "Product": product,
-                    "Complaint Type": complaint_type,
+                    "Job Category": job_category,
+                    "Service Scope": service_scope,
+                    "QTY": qty,
+                    "Office Remark": office_remark,
                     "Current Status": "Pending",
                     "Total Visits": 0,
                     "Final Installer": "Not Assigned",
@@ -109,14 +129,18 @@ elif user_role == "🔧 Technician - Job Visit":
             job_details = job_match.iloc[0]
             st.success(f"Job Found: **{job_details['Client Name']}** ({job_details['Job Sheet No']})")
             
-            # Display Client Cards
-            c1, c2, c3 = st.columns(3)
+            # Display Client & Job Details Cards
+            c1, c2, c3, c4 = st.columns(4)
             c1.metric("Client Name", job_details["Client Name"])
-            c2.metric("Product", job_details["Product"])
-            c3.metric("Current Status", job_details["Current Status"])
+            c2.metric("Product (QTY)", f"{job_details['Product']} ({job_details['QTY']})")
+            c3.metric("Type / Scope", f"{job_details['Job Category']} / {job_details['Service Scope']}")
+            c4.metric("Status", job_details["Current Status"])
             
-            st.write(f"📍 **Address:** {job_details['Address']} ({job_details['Location']})")
-            st.write(f"📞 **Contact:** {job_details['Contact Number']} | ⚠️ **Complaint:** {job_details['Complaint Type']}")
+            st.write(f"📍 **Address:** {job_details['Address']}, {job_details['Location']}, {job_details['State']}")
+            st.write(f"📞 **Contact:** {job_details['Contact Number']}")
+            
+            # Office Remark Displayed for Installer Info
+            st.warning(f"📝 **Job Description / Issue Note:** {job_details['Office Remark']}")
             st.markdown("---")
             
             # Technician Report Form
@@ -131,12 +155,11 @@ elif user_role == "🔧 Technician - Job Visit":
                     status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"])
                     visit_remarks = st.text_area("Visit Remarks / Work Done Notes*")
 
-                # Mandatory Fields ONLY when Status is "Completed"
                 physical_job_no = ""
                 photo_file = None
                 
                 if status_update == "Completed":
-                    st.warning("🔒 **Completion Protocol Active:** Physical Job Sheet No. & Photo Upload are required!")
+                    st.info("🔒 **Completion Protocol Active:** Physical Job Sheet No. & Photo Upload are required!")
                     col_c, col_d = st.columns(2)
                     with col_c:
                         physical_job_no = st.text_input("Physical Paper Job Sheet Slip No.*")
@@ -151,7 +174,6 @@ elif user_role == "🔧 Technician - Job Visit":
                     elif status_update == "Completed" and (not physical_job_no or photo_file is None):
                         st.error("❌ Cannot complete job! Physical Job Sheet No. and Photo are mandatory for completed status.")
                     else:
-                        # Update Master Data
                         idx = df[df["Job Sheet No"] == search_job_id].index[0]
                         st.session_state["master_data"].at[idx, "Current Status"] = status_update
                         st.session_state["master_data"].at[idx, "Final Installer"] = installer_name
