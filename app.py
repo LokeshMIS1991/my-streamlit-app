@@ -155,7 +155,7 @@ if user_role == "👔 Manager - Create / Edit Job":
             with col2:
                 product = st.selectbox("Product Category*", PRODUCT_LIST)
                 job_category = st.selectbox("Job Category (Service Type)*", ["Complaint", "New Installation"])
-                service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service"])
+                service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service","Sidharth"])
                 qty = st.number_input("Quantity (QTY)*", min_value=1, value=1, step=1)
                 office_remark = st.text_area("Initial Job Remark / Issue Description (For Installer)*")
 
