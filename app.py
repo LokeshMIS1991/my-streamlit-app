@@ -26,6 +26,43 @@ INDIAN_STATES = [
     "Delhi NCR", "Other"
 ]
 
+# Product List from Image + Other
+PRODUCT_LIST = [
+    "Automatic Rolling Shutters",
+    "Dock Leveller",
+    "Dock Shelter",
+    "High-Speed Roll Up Door",
+    "High-Speed Fold Up Door",
+    "High-Speed Self Repairable Door",
+    "Residential Sectional Doors",
+    "Industrial Sectional Door",
+    "Hermetic Doors",
+    "Fire Exit Door",
+    "Auto Sliding Door",
+    "Motorised Swing Gates",
+    "Motorised Sliding Gates",
+    "Retractable Gates",
+    "Boom Barriers",
+    "Strong Life Shutter Motor",
+    "Manual Shutters",
+    "Wind Shutters",
+    "Spare Part",
+    "Service Charge",
+    "Sensor / Automatic Glass Door",
+    "Motors",
+    "Dock Bumper",
+    "Dock Edge",
+    "Overhead Sectional Door",
+    "Tank Door Shutter",
+    "Gear Shutter",
+    "General purpose Doors",
+    "Hanger Door",
+    "Impact Barrier",
+    "Manual Swing Gate",
+    "Manual Sliding Gate",
+    "Other"
+]
+
 # Simulated Database with New Column Structure
 if "master_data" not in st.session_state:
     st.session_state["master_data"] = pd.DataFrame([
@@ -39,7 +76,7 @@ if "master_data" not in st.session_state:
             "Address": "Malviya Nagar, Jaipur",
             "Location": "Jaipur",
             "State": "Rajasthan",
-            "Product": "Motorized Shutter",
+            "Product": "Automatic Rolling Shutters",
             "Job Category": "Complaint",
             "Service Scope": "General Service",
             "QTY": 1,
@@ -78,7 +115,7 @@ if user_role == "👔 Manager - Create Job":
             state = st.selectbox("State*", INDIAN_STATES, index=INDIAN_STATES.index("Rajasthan") if "Rajasthan" in INDIAN_STATES else 0)
             
         with col2:
-            product = st.selectbox("Product Category*", ["Motorized Shutter", "Automatic Gate", "Rolling Shutter", "Sensor Door", "Other"])
+            product = st.selectbox("Product Category*", PRODUCT_LIST)
             job_category = st.selectbox("Job Category (Service Type)*", ["Complaint", "New Installation"])
             service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service"])
             qty = st.number_input("Quantity (QTY)*", min_value=1, value=1, step=1)
