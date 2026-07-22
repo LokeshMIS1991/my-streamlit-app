@@ -12,6 +12,7 @@ st.title("🛠️ TechFlow CRM — Field Operations Portal")
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/1055/1055644.png", width=70)
 st.sidebar.title("Navigation")
 user_role = st.sidebar.radio("Choose Section:", [
+    "📈 Executive Dashboard",
     "👔 Manager - Create / Edit Job", 
     "🔧 Technician - Job Visit", 
     "📊 View All Jobs (Master Sheet)",
@@ -50,58 +51,45 @@ PENDING_REASONS = [
 ]
 
 # ---------------------------------------------------------
-# INITIALIZE SESSION DATABASES
+# INITIALIZE SESSION DATABASES WITH 15 REALISTIC ENTRIES
 # ---------------------------------------------------------
 if "master_data" not in st.session_state:
     st.session_state["master_data"] = pd.DataFrame([
-        {
-            "JS ID": "JS-101",
-            "Date": "17-Jul-2026",
-            "Month": "July",
-            "Client Name": "Lokesh Enterprises",
-            "Project Name": "CRM Office Setup",
-            "Contact Number": "9876543210",
-            "Address": "Malviya Nagar, Jaipur",
-            "Location": "Jaipur",
-            "State": "Rajasthan",
-            "Product": "Automatic Rolling Shutters",
-            "Job Category": "Complaint",
-            "Service Scope": "General Service",
-            "QTY": 1,
-            "Office Remark": "Remote control frequency issue and motor sensor jamming.",
-            "Current Status": "Completed",
-            "Total Visits": 2,
-            "Final Installer": "Hariom",
-            "Close Date": "18-Jul-2026"
-        }
+        {"JS ID": "JS-101", "Date": "01-Jul-2026", "Month": "July", "Client Name": "Lokesh Enterprises", "Project Name": "Warehouse Gate", "Contact Number": "9876543210", "Address": "Malviya Nagar", "Location": "Jaipur", "State": "Rajasthan", "Product": "Automatic Rolling Shutters", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 2, "Office Remark": "Motor sensor issue", "Current Status": "Completed", "Total Visits": 2, "Final Installer": "Hariom", "Close Date": "02-Jul-2026"},
+        {"JS ID": "JS-102", "Date": "03-Jul-2026", "Month": "July", "Client Name": "Reliance Retail", "Project Name": "Store Front Entry", "Contact Number": "9823411122", "Address": "Connaught Place", "Location": "Delhi NCR", "State": "Delhi NCR", "Product": "Auto Sliding Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 4, "Office Remark": "Fresh glass door setup", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Rajesh Sharma", "Close Date": "04-Jul-2026"},
+        {"JS ID": "JS-103", "Date": "05-Jul-2026", "Month": "July", "Client Name": "Tata Steel Logistics", "Project Name": "Dock Loading Bay", "Contact Number": "9988776655", "Address": "Sanand Industrial Area", "Location": "Ahmedabad", "State": "Gujarat", "Product": "Dock Leveller", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 3, "Office Remark": "Hydraulic oil leak", "Current Status": "Pending", "Total Visits": 1, "Final Installer": "Suresh Patel", "Close Date": "N/A"},
+        {"JS ID": "JS-104", "Date": "06-Jul-2026", "Month": "July", "Client Name": "DLF Cybercity", "Project Name": "Tower B Security Gate", "Contact Number": "9711223344", "Address": "Cyber City Phase 2", "Location": "Gurugram", "State": "Haryana", "Product": "Boom Barriers", "Job Category": "New Installation", "Service Scope": "Dealer", "QTY": 2, "Office Remark": "RFID Barrier setup", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Amit Kumar", "Close Date": "07-Jul-2026"},
+        {"JS ID": "JS-105", "Date": "08-Jul-2026", "Month": "July", "Client Name": "Fortis Hospital", "Project Name": "ICU Emergency Wing", "Contact Number": "9123456780", "Address": "Bannnerghatta Road", "Location": "Bengaluru", "State": "Karnataka", "Product": "Hermetic Doors", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 1, "Office Remark": "Air seal leakage", "Current Status": "Completed", "Total Visits": 2, "Final Installer": "Pradeep Verma", "Close Date": "10-Jul-2026"},
+        {"JS ID": "JS-106", "Date": "10-Jul-2026", "Month": "July", "Client Name": "Adani Cold Storage", "Project Name": "Chamber 3 Unit", "Contact Number": "9414099887", "Address": "Mundra Port Zone", "Location": "Mundra", "State": "Gujarat", "Product": "High-Speed Roll Up Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 5, "Office Remark": "Cold room high speed door", "Current Status": "Pending", "Total Visits": 2, "Final Installer": "Karan Singh", "Close Date": "N/A"},
+        {"JS ID": "JS-107", "Date": "11-Jul-2026", "Month": "July", "Client Name": "Mahindra Auto Plant", "Project Name": "Assembly Line Entry", "Contact Number": "9822001122", "Address": "Chakan MIDC", "Location": "Pune", "State": "Maharashtra", "Product": "Industrial Sectional Door", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 2, "Office Remark": "Cable snapped issue", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Sachin Patil", "Close Date": "12-Jul-2026"},
+        {"JS ID": "JS-108", "Date": "13-Jul-2026", "Month": "July", "Client Name": "Oberoi Mall", "Project Name": "Main Gate Barrier", "Contact Number": "9892012345", "Address": "Goregaon East", "Location": "Mumbai", "State": "Maharashtra", "Product": "Motorised Sliding Gates", "Job Category": "New Installation", "Service Scope": "Dealer", "QTY": 1, "Office Remark": "Heavy motor gate installation", "Current Status": "Pending", "Total Visits": 0, "Final Installer": "Not Assigned", "Close Date": "N/A"},
+        {"JS ID": "JS-109", "Date": "14-Jul-2026", "Month": "July", "Client Name": "Jaipur Club", "Project Name": "Parking Retractable Gate", "Contact Number": "9414011223", "Address": "MI Road", "Location": "Jaipur", "State": "Rajasthan", "Product": "Retractable Gates", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 1, "Office Remark": "Track wheel damage", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Hariom", "Close Date": "15-Jul-2026"},
+        {"JS ID": "JS-110", "Date": "15-Jul-2026", "Month": "July", "Client Name": "ITC Grand Bharat", "Project Name": "Service Entry Shutter", "Contact Number": "9810055443", "Address": "Tauru Road", "Location": "Gurugram", "State": "Haryana", "Product": "Fire Exit Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 3, "Office Remark": "Panic bar fitting required", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Vikram Singh", "Close Date": "16-Jul-2026"},
+        {"JS ID": "JS-111", "Date": "16-Jul-2026", "Month": "July", "Client Name": "Amazon Fulfillment Center", "Project Name": "Inbound Bay 12", "Contact Number": "9740011223", "Address": "Hosote Logistics Park", "Location": "Bengaluru", "State": "Karnataka", "Product": "Dock Shelter", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 4, "Office Remark": "Torn curtain replacement", "Current Status": "Pending", "Total Visits": 1, "Final Installer": "Ramesh Gowda", "Close Date": "N/A"},
+        {"JS ID": "JS-112", "Date": "18-Jul-2026", "Month": "July", "Client Name": "Apollo Hospitals", "Project Name": "Operation Theatre 4", "Contact Number": "9840099887", "Address": "Greams Road", "Location": "Chennai", "State": "Tamil Nadu", "Product": "Hermetic Doors", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 1, "Office Remark": "Sensor not responding", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Santhosh M", "Close Date": "19-Jul-2026"},
+        {"JS ID": "JS-113", "Date": "19-Jul-2026", "Month": "July", "Client Name": "Hero MotoCorp", "Project Name": "R&D Facility Gate", "Contact Number": "9896011223", "Address": "Kukas Industrial Area", "Location": "Jaipur", "State": "Rajasthan", "Product": "High-Speed Fold Up Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 2, "Office Remark": "High wind lock door installation", "Current Status": "Pending", "Total Visits": 1, "Final Installer": "Lokesh Kumar", "Close Date": "N/A"},
+        {"JS ID": "JS-114", "Date": "20-Jul-2026", "Month": "July", "Client Name": "L&T Construction Site", "Project Name": "Metro Depot Yard", "Contact Number": "9830055667", "Address": "New Town", "Location": "Kolkata", "State": "West Bengal", "Product": "Strong Life Shutter Motor", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 2, "Office Remark": "Motor burning issue check", "Current Status": "Pending", "Total Visits": 0, "Final Installer": "Not Assigned", "Close Date": "N/A"},
+        {"JS ID": "JS-115", "Date": "21-Jul-2026", "Month": "July", "Client Name": "Haldiram Snacks Plant", "Project Name": "Packaging Hall", "Contact Number": "9910022334", "Address": "Noida Sector 63", "Location": "Noida", "State": "Uttar Pradesh", "Product": "High-Speed Self Repairable Door", "Job Category": "New Installation", "Service Scope": "Dealer", "QTY": 3, "Office Remark": "Clean room installation", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Sanjay Dutt", "Close Date": "22-Jul-2026"}
     ])
 
 if "visit_history" not in st.session_state:
     st.session_state["visit_history"] = pd.DataFrame([
-        {
-            "JS ID": "JS-101",
-            "Visit No": 1,
-            "Visit Date": "17-Jul-2026",
-            "Installer Name": "Lokesh Kumar",
-            "Status": "Pending",
-            "Reason": "Power Outage / Technical Issue",
-            "Time Spent": "2 Hours",
-            "Remarks": "There is some power outage on site.",
-            "Doc No": "N/A",
-            "Photo URL": "N/A"
-        },
-        {
-            "JS ID": "JS-101",
-            "Visit No": 2,
-            "Visit Date": "18-Jul-2026",
-            "Installer Name": "Hariom",
-            "Status": "Completed",
-            "Reason": "N/A",
-            "Time Spent": "1 Hour",
-            "Remarks": "Work is completed successfully.",
-            "Doc No": "1234",
-            "Photo URL": "https://drive.google.com/file/d/sample_photo/view"
-        }
+        {"JS ID": "JS-101", "Visit No": 1, "Visit Date": "01-Jul-2026", "Installer Name": "Lokesh Kumar", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "2 Hours", "Remarks": "Sensor spare part required.", "Doc No": "N/A", "Photo URL": "N/A"},
+        {"JS ID": "JS-101", "Visit No": 2, "Visit Date": "02-Jul-2026", "Installer Name": "Hariom", "Status": "Completed", "Reason": "N/A", "Time Spent": "1.5 Hours", "Remarks": "Replaced sensor, working fine.", "Doc No": "1001", "Photo URL": "https://drive.google.com/sample1.jpg"},
+        {"JS ID": "JS-102", "Visit No": 1, "Visit Date": "04-Jul-2026", "Installer Name": "Rajesh Sharma", "Status": "Completed", "Reason": "N/A", "Time Spent": "Full Day", "Remarks": "Installed 4 glass doors smoothly.", "Doc No": "1002", "Photo URL": "https://drive.google.com/sample2.jpg"},
+        {"JS ID": "JS-103", "Visit No": 1, "Visit Date": "05-Jul-2026", "Installer Name": "Suresh Patel", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "3+ Hours", "Remarks": "Hydraulic oil seal ordered.", "Doc No": "N/A", "Photo URL": "N/A"},
+        {"JS ID": "JS-104", "Visit No": 1, "Visit Date": "07-Jul-2026", "Installer Name": "Amit Kumar", "Status": "Completed", "Reason": "N/A", "Time Spent": "2 Hours", "Remarks": "Barrier programming complete.", "Doc No": "1003", "Photo URL": "https://drive.google.com/sample3.jpg"},
+        {"JS ID": "JS-105", "Visit No": 1, "Visit Date": "08-Jul-2026", "Installer Name": "Pradeep Verma", "Status": "Pending", "Reason": "Power Outage / Technical Issue", "Time Spent": "1 Hour", "Remarks": "Power cut at site.", "Doc No": "N/A", "Photo URL": "N/A"},
+        {"JS ID": "JS-105", "Visit No": 2, "Visit Date": "10-Jul-2026", "Installer Name": "Pradeep Verma", "Status": "Completed", "Reason": "N/A", "Time Spent": "2 Hours", "Remarks": "Gasket replaced and air seal fixed.", "Doc No": "1004", "Photo URL": "https://drive.google.com/sample4.jpg"},
+        {"JS ID": "JS-106", "Visit No": 1, "Visit Date": "10-Jul-2026", "Installer Name": "Karan Singh", "Status": "Pending", "Reason": "Site Not Ready", "Time Spent": "2 Hours", "Remarks": "Civil structure work pending.", "Doc No": "N/A", "Photo URL": "N/A"},
+        {"JS ID": "JS-106", "Visit No": 2, "Visit Date": "15-Jul-2026", "Installer Name": "Karan Singh", "Status": "Pending", "Reason": "Customer Not Available", "Time Spent": "1 Hour", "Remarks": "Manager out of city.", "Doc No": "N/A", "Photo URL": "N/A"},
+        {"JS ID": "JS-107", "Visit No": 1, "Visit Date": "12-Jul-2026", "Installer Name": "Sachin Patil", "Status": "Completed", "Reason": "N/A", "Time Spent": "3+ Hours", "Remarks": "New wire cable fitted.", "Doc No": "1005", "Photo URL": "https://drive.google.com/sample5.jpg"},
+        {"JS ID": "JS-109", "Visit No": 1, "Visit Date": "15-Jul-2026", "Installer Name": "Hariom", "Status": "Completed", "Reason": "N/A", "Time Spent": "2 Hours", "Remarks": "New track wheel set installed.", "Doc No": "1006", "Photo URL": "https://drive.google.com/sample6.jpg"},
+        {"JS ID": "JS-110", "Visit No": 1, "Visit Date": "16-Jul-2026", "Installer Name": "Vikram Singh", "Status": "Completed", "Reason": "N/A", "Time Spent": "Full Day", "Remarks": "Panic doors and seals tested.", "Doc No": "1007", "Photo URL": "https://drive.google.com/sample7.jpg"},
+        {"JS ID": "JS-111", "Visit No": 1, "Visit Date": "17-Jul-2026", "Installer Name": "Ramesh Gowda", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "1 Hour", "Remarks": "Curtain material in transit.", "Doc No": "N/A", "Photo URL": "N/A"},
+        {"JS ID": "JS-112", "Visit No": 1, "Visit Date": "19-Jul-2026", "Installer Name": "Santhosh M", "Status": "Completed", "Reason": "N/A", "Time Spent": "1 Hour", "Remarks": "Radar motion sensor aligned.", "Doc No": "1008", "Photo URL": "https://drive.google.com/sample8.jpg"},
+        {"JS ID": "JS-113", "Visit No": 1, "Visit Date": "20-Jul-2026", "Installer Name": "Lokesh Kumar", "Status": "Pending", "Reason": "Power Outage / Technical Issue", "Time Spent": "2 Hours", "Remarks": "3-phase power supply pending.", "Doc No": "N/A", "Photo URL": "N/A"},
+        {"JS ID": "JS-115", "Visit No": 1, "Visit Date": "22-Jul-2026", "Installer Name": "Sanjay Dutt", "Status": "Completed", "Reason": "N/A", "Time Spent": "Full Day", "Remarks": "Installed and handed over.", "Doc No": "1009", "Photo URL": "https://drive.google.com/sample9.jpg"}
     ])
 
 # Helper Function to Sync Master Sheet Status
@@ -124,9 +112,56 @@ def sync_master_status(job_id):
             st.session_state["master_data"].at[m_idx, "Close Date"] = "N/A"
 
 # ---------------------------------------------------------
+# MODULE 0: EXECUTIVE DASHBOARD MODULE (NEW)
+# ---------------------------------------------------------
+if user_role == "📈 Executive Dashboard":
+    st.subheader("📊 Executive Operations & Performance Dashboard")
+    
+    m_df = st.session_state["master_data"]
+    
+    # 1. TOP METRICS CARDS
+    total_jobs = len(m_df)
+    completed_jobs = len(m_df[m_df["Current Status"] == "Completed"])
+    pending_jobs = len(m_df[m_df["Current Status"] == "Pending"])
+    completion_rate = round((completed_jobs / total_jobs * 100), 1) if total_jobs > 0 else 0
+    
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    kpi1.metric("📌 Total JS IDs / Leads", total_jobs)
+    kpi2.metric("🟢 Completed Jobs", completed_jobs, f"{completion_rate}% Done")
+    kpi3.metric("🟡 Pending Jobs", pending_jobs, f"-{round(100 - completion_rate, 1)}%", delta_color="inverse")
+    kpi4.metric("⚙️ Service Completion Rate", f"{completion_rate}%")
+    
+    st.markdown("---")
+    
+    # 2. ANALYTICAL CHARTS (AUTOMATED & INTERACTIVE)
+    chart_col1, chart_col2 = st.columns(2)
+    
+    with chart_col1:
+        st.markdown("### 🏷️ Jobs by Category")
+        cat_counts = m_df["Job Category"].value_counts().reset_index()
+        cat_counts.columns = ["Job Category", "Count"]
+        st.bar_chart(cat_counts.set_index("Job Category"), color="#36A2EB")
+        
+        st.markdown("### 🗺️ State-wise Distribution")
+        state_counts = m_df["State"].value_counts().reset_index()
+        state_counts.columns = ["State", "Total Jobs"]
+        st.bar_chart(state_counts.set_index("State"), color="#FFCE56")
+
+    with chart_col2:
+        st.markdown("### 🎯 Jobs by Service Scope")
+        scope_counts = m_df["Service Scope"].value_counts().reset_index()
+        scope_counts.columns = ["Service Scope", "Count"]
+        st.bar_chart(scope_counts.set_index("Service Scope"), color="#4BC0C0")
+        
+        st.markdown("### 🚦 Overall Status Breakdown")
+        status_counts = m_df["Current Status"].value_counts().reset_index()
+        status_counts.columns = ["Status", "Count"]
+        st.dataframe(status_counts, use_container_width=True)
+
+# ---------------------------------------------------------
 # MODULE 1: MANAGER PORTAL (Create & Edit Job Entry)
 # ---------------------------------------------------------
-if user_role == "👔 Manager - Create / Edit Job":
+elif user_role == "👔 Manager - Create / Edit Job":
     st.subheader("📋 Manager Operations Portal")
     
     tab1, tab2 = st.tabs(["➕ Create New JS ID", "✏️ Search & Edit Job Details"])
@@ -431,5 +466,5 @@ elif user_role == "📊 View All Jobs (Master Sheet)":
 # MODULE 4: VISIT HISTORY DATABASE VIEW
 # ---------------------------------------------------------
 elif user_role == "📜 View Visit History Database":
-    st.subheader("📜 Visit History Database")
+    st.subheader("📜 View Visit History Database")
     st.dataframe(st.session_state["visit_history"], use_container_width=True)
