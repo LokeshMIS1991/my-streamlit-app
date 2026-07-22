@@ -104,6 +104,25 @@ if "visit_history" not in st.session_state:
         }
     ])
 
+# Helper Function to Sync Master Sheet Status
+def sync_master_status(job_id):
+    v_df = st.session_state["visit_history"]
+    m_df = st.session_state["master_data"]
+    
+    job_visits = v_df[v_df["Job Sheet No"] == job_id]
+    if not job_visits.empty:
+        last_visit = job_visits.iloc[-1]
+        m_idx = m_df[m_df["Job Sheet No"] == job_id].index[0]
+        
+        st.session_state["master_data"].at[m_idx, "Current Status"] = last_visit["Status"]
+        st.session_state["master_data"].at[m_idx, "Final Installer"] = last_visit["Installer Name"]
+        st.session_state["master_data"].at[m_idx, "Total Visits"] = len(job_visits)
+        
+        if last_visit["Status"] == "Completed":
+            st.session_state["master_data"].at[m_idx, "Close Date"] = last_visit["Visit Date"]
+        else:
+            st.session_state["master_data"].at[m_idx, "Close Date"] = "N/A"
+
 # ---------------------------------------------------------
 # MODULE 1: MANAGER PORTAL (Create New Job)
 # ---------------------------------------------------------
@@ -164,12 +183,11 @@ if user_role == "👔 Manager - Create Job":
                 }
                 st.session_state["master_data"] = pd.concat([st.session_state["master_data"], pd.DataFrame([new_row])], ignore_index=True)
                 
-                # Success Notification with Direct Shareable Copy Info
                 st.success(f"🎉 Job Sheet Successfully Created!")
                 st.code(f"Job Sheet ID: {auto_job_id}\nClient: {client_name}\nContact: {contact_number}\nProduct: {product}", language="markdown")
 
 # ---------------------------------------------------------
-# MODULE 2: TECHNICIAN PORTAL (Job Search & Visit Entry)
+# MODULE 2: TECHNICIAN PORTAL (Job Search, Visit Entry & Edit)
 # ---------------------------------------------------------
 elif user_role == "🔧 Technician - Job Visit":
     st.subheader("🔍 Technician Job Search & Visit Update")
@@ -198,7 +216,7 @@ elif user_role == "🔧 Technician - Job Visit":
             st.markdown("---")
             
             # -------------------------------------------------
-            # PREVIOUS VISIT LOGS DISPLAY (Matching Image 1 UI)
+            # PREVIOUS VISIT LOGS WITH EDIT FEATURE
             # -------------------------------------------------
             st.subheader("📜 Previous Visit Logs")
             v_df = st.session_state["visit_history"]
@@ -213,23 +231,58 @@ elif user_role == "🔧 Technician - Job Visit":
                     v_time = visit["Time Spent"]
                     v_remarks = visit["Remarks"]
                     
-                    if v_status == "Completed":
-                        with st.container():
-                            st.markdown(f"🟢 **# Visit #{v_no}** — **Status: Completed**")
-                            st.caption(f"📅 **Date:** {v_date} | 👤 **Tech:** {v_tech} | ⏱️ **Time Spent:** {v_time}")
-                            if visit["Doc No"] != "N/A":
-                                st.caption(f"📑 **Paper Slip No:** {visit['Doc No']}")
-                            st.write(f"💬 *Remarks:* {v_remarks}")
-                            if visit["Photo URL"] != "N/A":
-                                st.markdown(f"[📷 View Uploaded Photo]({visit['Photo URL']})")
-                            st.markdown("---")
-                    else:
-                        with st.container():
-                            st.markdown(f"🟡 **# Visit #{v_no}** — **Status: Pending**")
-                            st.caption(f"📅 **Date:** {v_date} | 👤 **Tech:** {v_tech} | ⏱️ **Time Spent:** {v_time}")
+                    status_badge = "🟢 Completed" if v_status == "Completed" else "🟡 Pending"
+                    
+                    col_log1, col_log2 = st.columns([4, 1])
+                    with col_log1:
+                        st.markdown(f"**# Visit #{v_no}** — **Status: {status_badge}**")
+                        st.caption(f"📅 **Date:** {v_date} | 👤 **Tech:** {v_tech} | ⏱️ **Time Spent:** {v_time}")
+                        if v_status == "Pending":
                             st.error(f"⚠️ **Reason for Pending:** {visit['Reason']}")
-                            st.write(f"💬 *Remarks:* {v_remarks}")
-                            st.markdown("---")
+                        if visit["Doc No"] != "N/A":
+                            st.caption(f"📑 **Paper Slip No:** {visit['Doc No']}")
+                        st.write(f"💬 *Remarks:* {v_remarks}")
+                    
+                    with col_log2:
+                        edit_btn = st.button(f"✏️ Edit Visit #{v_no}", key=f"edit_btn_{v_no}")
+                        if edit_btn:
+                            st.session_state["editing_visit_no"] = v_no
+
+                    # EDIT FORM EXPANDER (Triggered on click)
+                    if st.session_state.get("editing_visit_no") == v_no:
+                        with st.expander(f"🛠️ Edit Details for Visit #{v_no}", expanded=True):
+                            with st.form(f"edit_form_{v_no}"):
+                                edit_tech = st.text_input("Installer Name", value=v_tech)
+                                edit_time = st.selectbox("Time Spent", ["30 Mins", "1 Hour", "1.5 Hours", "2 Hours", "3+ Hours", "Full Day"], index=0)
+                                edit_status = st.selectbox("Status", ["Pending", "Completed"], index=0 if v_status=="Pending" else 1)
+                                
+                                edit_reason = visit["Reason"]
+                                if edit_status == "Pending":
+                                    edit_reason = st.selectbox("Reason for Pending", PENDING_REASONS)
+                                else:
+                                    edit_reason = "N/A"
+                                    
+                                edit_doc = st.text_input("Paper Slip No", value=visit["Doc No"])
+                                edit_remarks = st.text_area("Remarks", value=v_remarks)
+                                
+                                save_edit = st.form_submit_button("💾 Update Visit Entry")
+                                if save_edit:
+                                    v_idx = v_df[(v_df["Job Sheet No"] == search_job_id) & (v_df["Visit No"] == v_no)].index[0]
+                                    st.session_state["visit_history"].at[v_idx, "Installer Name"] = edit_tech
+                                    st.session_state["visit_history"].at[v_idx, "Time Spent"] = edit_time
+                                    st.session_state["visit_history"].at[v_idx, "Status"] = edit_status
+                                    st.session_state["visit_history"].at[v_idx, "Reason"] = edit_reason
+                                    st.session_state["visit_history"].at[v_idx, "Doc No"] = edit_doc
+                                    st.session_state["visit_history"].at[v_idx, "Remarks"] = edit_remarks
+                                    
+                                    # Sync with Master Sheet
+                                    sync_master_status(search_job_id)
+                                    
+                                    st.session_state["editing_visit_no"] = None
+                                    st.success(f"✅ Visit #{v_no} successfully updated!")
+                                    st.rerun()
+
+                    st.markdown("---")
             else:
                 st.info("ℹ️ No previous visit logs found for this Job Sheet. This will be Visit #1.")
             
@@ -278,7 +331,6 @@ elif user_role == "🔧 Technician - Job Visit":
                         if photo_file is not None:
                             photo_url = f"https://drive.google.com/uploaded_file_{physical_job_no}.jpg"
 
-                        # 1. Add Entry to Visit History Database
                         new_visit_row = {
                             "Job Sheet No": search_job_id,
                             "Visit No": next_visit_no,
@@ -293,14 +345,8 @@ elif user_role == "🔧 Technician - Job Visit":
                         }
                         st.session_state["visit_history"] = pd.concat([st.session_state["visit_history"], pd.DataFrame([new_visit_row])], ignore_index=True)
 
-                        # 2. Update Master Job Database
-                        idx = master_df[master_df["Job Sheet No"] == search_job_id].index[0]
-                        st.session_state["master_data"].at[idx, "Current Status"] = status_update
-                        st.session_state["master_data"].at[idx, "Final Installer"] = installer_name
-                        st.session_state["master_data"].at[idx, "Total Visits"] = next_visit_no
-                        
-                        if status_update == "Completed":
-                            st.session_state["master_data"].at[idx, "Close Date"] = today_str
+                        # Sync with Master Sheet
+                        sync_master_status(search_job_id)
                         
                         st.balloons()
                         st.success(f"🎉 Visit #{next_visit_no} Report submitted for {search_job_id}!")
@@ -316,7 +362,7 @@ elif user_role == "📊 View All Jobs (Master Sheet)":
     st.dataframe(st.session_state["master_data"], use_container_width=True)
 
 # ---------------------------------------------------------
-# MODULE 4: VISIT HISTORY DATABASE VIEW (Matching Image 2 Table)
+# MODULE 4: VISIT HISTORY DATABASE VIEW
 # ---------------------------------------------------------
 elif user_role == "📜 View Visit History Database":
     st.subheader("📜 Visit History Database")
