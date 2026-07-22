@@ -5,18 +5,75 @@ from datetime import datetime
 # Page Configuration
 st.set_page_config(page_title="TechFlow CRM - FieldOps", layout="wide")
 
-# App Header & Branding
-st.title("🛠️ TechFlow CRM — Field Operations Portal")
+# ---------------------------------------------------------
+# AUTHENTICATION & LOGIN SYSTEM
+# ---------------------------------------------------------
+# User Credentials Dictionary (Username: {password, role, name})
+USER_CREDENTIALS = {
+    "admin": {"password": "admin123", "role": "Admin", "name": "Lokesh Admin"},
+    "tech": {"password": "tech123", "role": "Technician", "name": "Field Technician"}
+}
 
-# Sidebar Navigation
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/1055/1055644.png", width=70)
-st.sidebar.title("Navigation")
-user_role = st.sidebar.radio("Choose Section:", ["👔 Manager - Create Job", "🔧 Technician - Job Visit", "📊 View All Jobs (Master Sheet)"])
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+    st.session_state["user_role"] = None
+    st.session_state["user_name"] = None
+
+# Login Page Screen
+if not st.session_state["logged_in"]:
+    st.title("🔒 TechFlow CRM — Portal Login")
+    st.markdown("Please enter your credentials to access the system.")
+    
+    with st.form("login_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            username_input = st.text_input("Username").strip()
+        with col2:
+            password_input = st.text_input("Password", type="password")
+            
+        login_btn = st.form_submit_button("🚀 Login to Portal")
+        
+        if login_btn:
+            if username_input in USER_CREDENTIALS and USER_CREDENTIALS[username_input]["password"] == password_input:
+                st.session_state["logged_in"] = True
+                st.session_state["user_role"] = USER_CREDENTIALS[username_input]["role"]
+                st.session_state["user_name"] = USER_CREDENTIALS[username_input]["name"]
+                st.success(f"Welcome back, {st.session_state['user_name']}!")
+                st.rerun()
+            else:
+                st.error("❌ Invalid Username or Password. Please try again!")
+    st.stop() # Stop executing rest of code if not logged in
+
+# ---------------------------------------------------------
+# LOGGED-IN PORTAL UI
+# ---------------------------------------------------------
+
+# Sidebar Header & User Profile
+st.sidebar.image("https://cdn-icons-png.flaticon.com/512/1055/1055644.png", width=60)
+st.sidebar.title("TechFlow CRM")
+st.sidebar.caption(f"👤 **{st.session_state['user_name']}** ({st.session_state['user_role']})")
+
+if st.sidebar.button("🚪 Logout"):
+    st.session_state["logged_in"] = False
+    st.session_state["user_role"] = None
+    st.session_state["user_name"] = None
+    st.rerun()
 
 st.sidebar.markdown("---")
-st.sidebar.caption("TechFlow CRM v1.0 | Offline/Test Mode")
 
-# Simulated Database (Dummy Data for testing format)
+# Role-Based Navigation Filtering
+if st.session_state["user_role"] == "Admin":
+    navigation_options = ["👔 Manager - Create Job", "🔧 Technician - Job Visit", "📊 View All Jobs (Master Sheet)"]
+else:
+    # Technician only sees their visit form
+    navigation_options = ["🔧 Technician - Job Visit"]
+
+user_role = st.sidebar.radio("Navigation:", navigation_options)
+
+# Main Title
+st.title("🛠️ TechFlow CRM — Field Operations Portal")
+
+# Simulated Database
 if "master_data" not in st.session_state:
     st.session_state["master_data"] = pd.DataFrame([
         {
@@ -38,12 +95,11 @@ if "master_data" not in st.session_state:
     ])
 
 # ---------------------------------------------------------
-# MODULE 1: MANAGER PORTAL (Create New Job)
+# MODULE 1: MANAGER PORTAL (Create New Job) - ADMIN ONLY
 # ---------------------------------------------------------
 if user_role == "👔 Manager - Create Job":
     st.subheader("📋 Create New Job / Complaint Entry")
     
-    # Auto ID Generation Logic
     existing_jobs = len(st.session_state["master_data"])
     auto_job_id = f"JS-{101 + existing_jobs}"
     current_now = datetime.now()
@@ -54,7 +110,6 @@ if user_role == "👔 Manager - Create Job":
 
     with st.form("new_job_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
-        
         with col1:
             client_name = st.text_input("Client Name*")
             project_name = st.text_input("Project Name (Optional)", value="N/A")
@@ -73,7 +128,6 @@ if user_role == "👔 Manager - Create Job":
             if not client_name or not contact_number or not address:
                 st.error("⚠️ Please fill all mandatory fields (Client Name, Contact, Address)!")
             else:
-                # Add new row to temporary dataframe
                 new_row = {
                     "Job Sheet No": auto_job_id,
                     "Date": auto_date,
@@ -109,7 +163,6 @@ elif user_role == "🔧 Technician - Job Visit":
             job_details = job_match.iloc[0]
             st.success(f"Job Found: **{job_details['Client Name']}** ({job_details['Job Sheet No']})")
             
-            # Display Client Cards
             c1, c2, c3 = st.columns(3)
             c1.metric("Client Name", job_details["Client Name"])
             c2.metric("Product", job_details["Product"])
@@ -119,19 +172,17 @@ elif user_role == "🔧 Technician - Job Visit":
             st.write(f"📞 **Contact:** {job_details['Contact Number']} | ⚠️ **Complaint:** {job_details['Complaint Type']}")
             st.markdown("---")
             
-            # Technician Report Form
             st.subheader("📝 Submit Visit Report")
             with st.form("tech_visit_form"):
                 col_a, col_b = st.columns(2)
                 with col_a:
-                    installer_name = st.text_input("Technician / Installer Name*")
+                    installer_name = st.text_input("Technician / Installer Name*", value=st.session_state["user_name"])
                     time_spent = st.selectbox("Time Spent on Site*", ["30 Mins", "1 Hour", "2 Hours", "3+ Hours", "Full Day"])
                 
                 with col_b:
                     status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"])
                     visit_remarks = st.text_area("Visit Remarks / Work Done Notes*")
 
-                # Mandatory Fields ONLY when Status is "Completed"
                 physical_job_no = ""
                 photo_file = None
                 
@@ -151,7 +202,6 @@ elif user_role == "🔧 Technician - Job Visit":
                     elif status_update == "Completed" and (not physical_job_no or photo_file is None):
                         st.error("❌ Cannot complete job! Physical Job Sheet No. and Photo are mandatory for completed status.")
                     else:
-                        # Update Master Data
                         idx = df[df["Job Sheet No"] == search_job_id].index[0]
                         st.session_state["master_data"].at[idx, "Current Status"] = status_update
                         st.session_state["master_data"].at[idx, "Final Installer"] = installer_name
@@ -166,7 +216,7 @@ elif user_role == "🔧 Technician - Job Visit":
             st.error(f"❌ No job found with ID: '{search_job_id}'")
 
 # ---------------------------------------------------------
-# MODULE 3: MASTER DATABASE VIEW
+# MODULE 3: MASTER DATABASE VIEW - ADMIN ONLY
 # ---------------------------------------------------------
 elif user_role == "📊 View All Jobs (Master Sheet)":
     st.subheader("📋 Master Job Sheet Database")
