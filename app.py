@@ -55,7 +55,7 @@ PENDING_REASONS = [
 if "master_data" not in st.session_state:
     st.session_state["master_data"] = pd.DataFrame([
         {
-            "Job Sheet No": "JS-101",
+            "JS ID": "JS-101",
             "Date": "17-Jul-2026",
             "Month": "July",
             "Client Name": "Lokesh Enterprises",
@@ -79,7 +79,7 @@ if "master_data" not in st.session_state:
 if "visit_history" not in st.session_state:
     st.session_state["visit_history"] = pd.DataFrame([
         {
-            "Job Sheet No": "JS-101",
+            "JS ID": "JS-101",
             "Visit No": 1,
             "Visit Date": "17-Jul-2026",
             "Installer Name": "Lokesh Kumar",
@@ -91,7 +91,7 @@ if "visit_history" not in st.session_state:
             "Photo URL": "N/A"
         },
         {
-            "Job Sheet No": "JS-101",
+            "JS ID": "JS-101",
             "Visit No": 2,
             "Visit Date": "18-Jul-2026",
             "Installer Name": "Hariom",
@@ -109,10 +109,10 @@ def sync_master_status(job_id):
     v_df = st.session_state["visit_history"]
     m_df = st.session_state["master_data"]
     
-    job_visits = v_df[v_df["Job Sheet No"] == job_id]
+    job_visits = v_df[v_df["JS ID"] == job_id]
     if not job_visits.empty:
         last_visit = job_visits.iloc[-1]
-        m_idx = m_df[m_df["Job Sheet No"] == job_id].index[0]
+        m_idx = m_df[m_df["JS ID"] == job_id].index[0]
         
         st.session_state["master_data"].at[m_idx, "Current Status"] = last_visit["Status"]
         st.session_state["master_data"].at[m_idx, "Final Installer"] = last_visit["Installer Name"]
@@ -129,7 +129,7 @@ def sync_master_status(job_id):
 if user_role == "👔 Manager - Create / Edit Job":
     st.subheader("📋 Manager Operations Portal")
     
-    tab1, tab2 = st.tabs(["➕ Create New Job Sheet", "✏️ Search & Edit Job Details"])
+    tab1, tab2 = st.tabs(["➕ Create New JS ID", "✏️ Search & Edit Job Details"])
     
     # ------------------ TAB 1: CREATE JOB ------------------
     with tab1:
@@ -139,7 +139,7 @@ if user_role == "👔 Manager - Create / Edit Job":
         auto_date = current_now.strftime("%d-%b-%Y")
         auto_month = current_now.strftime("%B")
 
-        st.info(f"⚡ **Auto Generated Details:** Job ID: **{auto_job_id}** | Date: **{auto_date}** | Month: **{auto_month}**")
+        st.info(f"⚡ **Auto Generated Details:** JS ID: **{auto_job_id}** | Date: **{auto_date}** | Month: **{auto_month}**")
 
         with st.form("new_job_form", clear_on_submit=True):
             col1, col2 = st.columns(2)
@@ -155,18 +155,18 @@ if user_role == "👔 Manager - Create / Edit Job":
             with col2:
                 product = st.selectbox("Product Category*", PRODUCT_LIST)
                 job_category = st.selectbox("Job Category (Service Type)*", ["Complaint", "New Installation"])
-                service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service","Sidharth"])
+                service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service"])
                 qty = st.number_input("Quantity (QTY)*", min_value=1, value=1, step=1)
                 office_remark = st.text_area("Initial Job Remark / Issue Description (For Installer)*")
 
-            submit_job = st.form_submit_button("🚀 Generate Job Sheet")
+            submit_job = st.form_submit_button("🚀 Generate JS ID")
 
             if submit_job:
                 if not client_name or not contact_number or not address or not office_remark:
                     st.error("⚠️ Please fill all mandatory fields (Client Name, Contact, Address, Initial Remark)!")
                 else:
                     new_row = {
-                        "Job Sheet No": auto_job_id,
+                        "JS ID": auto_job_id,
                         "Date": auto_date,
                         "Month": auto_month,
                         "Client Name": client_name,
@@ -186,21 +186,21 @@ if user_role == "👔 Manager - Create / Edit Job":
                         "Close Date": "N/A"
                     }
                     st.session_state["master_data"] = pd.concat([st.session_state["master_data"], pd.DataFrame([new_row])], ignore_index=True)
-                    st.success(f"🎉 Job Sheet **{auto_job_id}** Successfully Created!")
-                    st.code(f"Job Sheet ID: {auto_job_id}\nClient: {client_name}\nContact: {contact_number}\nProduct: {product}", language="markdown")
+                    st.success(f"🎉 JS ID **{auto_job_id}** Successfully Created!")
+                    st.code(f"JS ID: {auto_job_id}\nClient: {client_name}\nContact: {contact_number}\nProduct: {product}", language="markdown")
 
     # ------------------ TAB 2: EDIT EXISTING JOB ------------------
     with tab2:
-        search_edit_id = st.text_input("Enter Job Sheet No to Edit (e.g. JS-101):").strip().upper()
+        search_edit_id = st.text_input("Enter JS ID to Edit (e.g. JS-101):").strip().upper()
         
         if search_edit_id:
             m_df = st.session_state["master_data"]
-            match = m_df[m_df["Job Sheet No"] == search_edit_id]
+            match = m_df[m_df["JS ID"] == search_edit_id]
             
             if not match.empty:
                 idx = match.index[0]
                 job_row = match.iloc[0]
-                st.warning(f"✏️ Editing Job Sheet: **{search_edit_id}** ({job_row['Client Name']})")
+                st.warning(f"✏️ Editing Details for **{search_edit_id}** ({job_row['Client Name']})")
                 
                 with st.form("edit_job_sheet_form"):
                     e_col1, e_col2 = st.columns(2)
@@ -243,10 +243,10 @@ if user_role == "👔 Manager - Create / Edit Job":
                         st.session_state["master_data"].at[idx, "QTY"] = e_qty
                         st.session_state["master_data"].at[idx, "Office Remark"] = e_remark
                         
-                        st.success(f"✅ Job Details for **{search_edit_id}** updated successfully!")
+                        st.success(f"✅ Details for **{search_edit_id}** updated successfully!")
                         st.rerun()
             else:
-                st.error(f"❌ No Job Sheet found with ID: '{search_edit_id}'")
+                st.error(f"❌ No Record found with JS ID: '{search_edit_id}'")
 
 # ---------------------------------------------------------
 # MODULE 2: TECHNICIAN PORTAL (Job Search, Visit Entry & Edit)
@@ -254,15 +254,15 @@ if user_role == "👔 Manager - Create / Edit Job":
 elif user_role == "🔧 Technician - Job Visit":
     st.subheader("🔍 Technician Job Search & Visit Update")
     
-    search_job_id = st.text_input("Enter Job Sheet No. (e.g. JS-101):").strip().upper()
+    search_job_id = st.text_input("Enter JS ID (e.g. JS-101):").strip().upper()
     
     if search_job_id:
         master_df = st.session_state["master_data"]
-        job_match = master_df[master_df["Job Sheet No"] == search_job_id]
+        job_match = master_df[master_df["JS ID"] == search_job_id]
         
         if not job_match.empty:
             job_details = job_match.iloc[0]
-            st.success(f"Job Found: **{job_details['Client Name']}** ({job_details['Job Sheet No']})")
+            st.success(f"Job Found: **{job_details['Client Name']}** ({job_details['JS ID']})")
             
             # Client & Job Details Header
             c1, c2, c3, c4 = st.columns(4)
@@ -282,7 +282,7 @@ elif user_role == "🔧 Technician - Job Visit":
             # -------------------------------------------------
             st.subheader("📜 Previous Visit Logs")
             v_df = st.session_state["visit_history"]
-            previous_visits = v_df[v_df["Job Sheet No"] == search_job_id].sort_values(by="Visit No", ascending=False)
+            previous_visits = v_df[v_df["JS ID"] == search_job_id].sort_values(by="Visit No", ascending=False)
             
             if not previous_visits.empty:
                 for _, visit in previous_visits.iterrows():
@@ -318,18 +318,16 @@ elif user_role == "🔧 Technician - Job Visit":
                                 edit_time = st.selectbox("Time Spent", ["30 Mins", "1 Hour", "1.5 Hours", "2 Hours", "3+ Hours", "Full Day"], index=0)
                                 edit_status = st.selectbox("Status", ["Pending", "Completed"], index=0 if v_status=="Pending" else 1)
                                 
-                                edit_reason = visit["Reason"]
+                                edit_reason = "N/A"
                                 if edit_status == "Pending":
                                     edit_reason = st.selectbox("Reason for Pending", PENDING_REASONS)
-                                else:
-                                    edit_reason = "N/A"
                                     
                                 edit_doc = st.text_input("Paper Slip No", value=visit["Doc No"])
                                 edit_remarks = st.text_area("Remarks", value=v_remarks)
                                 
                                 save_edit = st.form_submit_button("💾 Update Visit Entry")
                                 if save_edit:
-                                    v_idx = v_df[(v_df["Job Sheet No"] == search_job_id) & (v_df["Visit No"] == v_no)].index[0]
+                                    v_idx = v_df[(v_df["JS ID"] == search_job_id) & (v_df["Visit No"] == v_no)].index[0]
                                     st.session_state["visit_history"].at[v_idx, "Installer Name"] = edit_tech
                                     st.session_state["visit_history"].at[v_idx, "Time Spent"] = edit_time
                                     st.session_state["visit_history"].at[v_idx, "Status"] = edit_status
@@ -345,14 +343,17 @@ elif user_role == "🔧 Technician - Job Visit":
 
                     st.markdown("---")
             else:
-                st.info("ℹ️ No previous visit logs found for this Job Sheet. This will be Visit #1.")
+                st.info("ℹ️ No previous visit logs found for this JS ID. This will be Visit #1.")
             
             # -------------------------------------------------
-            # NEW VISIT REPORT ENTRY FORM
+            # NEW VISIT REPORT ENTRY (WITH DYNAMIC FORM)
             # -------------------------------------------------
             next_visit_no = len(previous_visits) + 1
             st.subheader(f"📝 Submit New Visit Report (Visit #{next_visit_no})")
             
+            # Status Selection Outside Form for Real-time Dynamic UI Toggle
+            status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"], key="live_status_select")
+
             with st.form("tech_visit_form"):
                 col_a, col_b = st.columns(2)
                 with col_a:
@@ -360,12 +361,12 @@ elif user_role == "🔧 Technician - Job Visit":
                     time_spent = st.selectbox("Time Spent on Site*", ["30 Mins", "1 Hour", "1.5 Hours", "2 Hours", "3+ Hours", "Full Day"])
                 
                 with col_b:
-                    status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"])
-                    
-                pending_reason = "N/A"
-                if status_update == "Pending":
-                    pending_reason = st.selectbox("Reason for Pending*", PENDING_REASONS)
-                    
+                    pending_reason = "N/A"
+                    if status_update == "Pending":
+                        pending_reason = st.selectbox("Reason for Pending*", PENDING_REASONS)
+                    else:
+                        st.success("✅ Work completed on site!")
+
                 visit_remarks = st.text_area("Visit Remarks / Work Done Notes*")
 
                 physical_job_no = "N/A"
@@ -373,7 +374,7 @@ elif user_role == "🔧 Technician - Job Visit":
                 photo_url = "N/A"
                 
                 if status_update == "Completed":
-                    st.info("🔒 **Completion Protocol Active:** Physical Job Sheet No. & Photo Upload are required!")
+                    st.info("🔒 **Completion Protocol Active:** Physical Paper Slip No. & Photo Upload are required!")
                     col_c, col_d = st.columns(2)
                     with col_c:
                         physical_job_no = st.text_input("Physical Paper Job Sheet Slip No.*")
@@ -386,14 +387,14 @@ elif user_role == "🔧 Technician - Job Visit":
                     if not installer_name or not visit_remarks:
                         st.error("⚠️ Technician Name and Remarks are required!")
                     elif status_update == "Completed" and (not physical_job_no or photo_file is None):
-                        st.error("❌ Cannot complete job! Physical Job Sheet No. and Photo are mandatory for completed status.")
+                        st.error("❌ Cannot complete job! Physical Job Sheet Slip No. and Photo are mandatory for completed status.")
                     else:
                         today_str = datetime.now().strftime("%d-%b-%Y")
                         if photo_file is not None:
                             photo_url = f"https://drive.google.com/uploaded_file_{physical_job_no}.jpg"
 
                         new_visit_row = {
-                            "Job Sheet No": search_job_id,
+                            "JS ID": search_job_id,
                             "Visit No": next_visit_no,
                             "Visit Date": today_str,
                             "Installer Name": installer_name,
@@ -412,7 +413,7 @@ elif user_role == "🔧 Technician - Job Visit":
                         st.success(f"🎉 Visit #{next_visit_no} Report submitted for {search_job_id}!")
                         st.rerun()
         else:
-            st.error(f"❌ No job found with ID: '{search_job_id}'")
+            st.error(f"❌ No record found with JS ID: '{search_job_id}'")
 
 # ---------------------------------------------------------
 # MODULE 3: MASTER JOB SHEET DATABASE VIEW
