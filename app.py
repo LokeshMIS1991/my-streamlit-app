@@ -17,7 +17,7 @@ st.sidebar.markdown("---")
 st.sidebar.caption("TechFlow CRM v1.0 | Offline/Test Mode")
 
 # Simulated Database (Dummy Data for testing format)
-if "master_data" not in st.mutable_globals if hasattr(st, "mutable_globals") else st.session_state:
+if "master_data" not in st.session_state:
     st.session_state["master_data"] = pd.DataFrame([
         {
             "Job Sheet No": "JS-101",
