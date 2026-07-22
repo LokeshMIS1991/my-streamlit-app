@@ -50,46 +50,27 @@ PENDING_REASONS = [
     "Customer Not Available", "Site Not Ready", "Other"
 ]
 
+# Payment Mode Options
+PAYMENT_MODES = ["UPI", "Cash", "In Account", "Credit Care of"]
+
 # ---------------------------------------------------------
-# INITIALIZE SESSION DATABASES WITH 15 REALISTIC ENTRIES
+# INITIALIZE SESSION DATABASES WITH SAMPLE ENTRIES
 # ---------------------------------------------------------
 if "master_data" not in st.session_state:
     st.session_state["master_data"] = pd.DataFrame([
-        {"JS ID": "JS-101", "Date": "01-Jul-2026", "Month": "July", "Client Name": "Lokesh Enterprises", "Project Name": "Warehouse Gate", "Contact Number": "9876543210", "Address": "Malviya Nagar", "Location": "Jaipur", "State": "Rajasthan", "Product": "Automatic Rolling Shutters", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 2, "Office Remark": "Motor sensor issue", "Current Status": "Completed", "Total Visits": 2, "Final Installer": "Hariom", "Close Date": "02-Jul-2026"},
-        {"JS ID": "JS-102", "Date": "03-Jul-2026", "Month": "July", "Client Name": "Reliance Retail", "Project Name": "Store Front Entry", "Contact Number": "9823411122", "Address": "Connaught Place", "Location": "Delhi NCR", "State": "Delhi NCR", "Product": "Auto Sliding Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 4, "Office Remark": "Fresh glass door setup", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Rajesh Sharma", "Close Date": "04-Jul-2026"},
-        {"JS ID": "JS-103", "Date": "05-Jul-2026", "Month": "July", "Client Name": "Tata Steel Logistics", "Project Name": "Dock Loading Bay", "Contact Number": "9988776655", "Address": "Sanand Industrial Area", "Location": "Ahmedabad", "State": "Gujarat", "Product": "Dock Leveller", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 3, "Office Remark": "Hydraulic oil leak", "Current Status": "Pending", "Total Visits": 1, "Final Installer": "Suresh Patel", "Close Date": "N/A"},
-        {"JS ID": "JS-104", "Date": "06-Jul-2026", "Month": "July", "Client Name": "DLF Cybercity", "Project Name": "Tower B Security Gate", "Contact Number": "9711223344", "Address": "Cyber City Phase 2", "Location": "Gurugram", "State": "Haryana", "Product": "Boom Barriers", "Job Category": "New Installation", "Service Scope": "Dealer", "QTY": 2, "Office Remark": "RFID Barrier setup", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Amit Kumar", "Close Date": "07-Jul-2026"},
-        {"JS ID": "JS-105", "Date": "08-Jul-2026", "Month": "July", "Client Name": "Fortis Hospital", "Project Name": "ICU Emergency Wing", "Contact Number": "9123456780", "Address": "Bannnerghatta Road", "Location": "Bengaluru", "State": "Karnataka", "Product": "Hermetic Doors", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 1, "Office Remark": "Air seal leakage", "Current Status": "Completed", "Total Visits": 2, "Final Installer": "Pradeep Verma", "Close Date": "10-Jul-2026"},
-        {"JS ID": "JS-106", "Date": "10-Jul-2026", "Month": "July", "Client Name": "Adani Cold Storage", "Project Name": "Chamber 3 Unit", "Contact Number": "9414099887", "Address": "Mundra Port Zone", "Location": "Mundra", "State": "Gujarat", "Product": "High-Speed Roll Up Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 5, "Office Remark": "Cold room high speed door", "Current Status": "Pending", "Total Visits": 2, "Final Installer": "Karan Singh", "Close Date": "N/A"},
-        {"JS ID": "JS-107", "Date": "11-Jul-2026", "Month": "July", "Client Name": "Mahindra Auto Plant", "Project Name": "Assembly Line Entry", "Contact Number": "9822001122", "Address": "Chakan MIDC", "Location": "Pune", "State": "Maharashtra", "Product": "Industrial Sectional Door", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 2, "Office Remark": "Cable snapped issue", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Sachin Patil", "Close Date": "12-Jul-2026"},
-        {"JS ID": "JS-108", "Date": "13-Jul-2026", "Month": "July", "Client Name": "Oberoi Mall", "Project Name": "Main Gate Barrier", "Contact Number": "9892012345", "Address": "Goregaon East", "Location": "Mumbai", "State": "Maharashtra", "Product": "Motorised Sliding Gates", "Job Category": "New Installation", "Service Scope": "Dealer", "QTY": 1, "Office Remark": "Heavy motor gate installation", "Current Status": "Pending", "Total Visits": 0, "Final Installer": "Not Assigned", "Close Date": "N/A"},
-        {"JS ID": "JS-109", "Date": "14-Jul-2026", "Month": "July", "Client Name": "Jaipur Club", "Project Name": "Parking Retractable Gate", "Contact Number": "9414011223", "Address": "MI Road", "Location": "Jaipur", "State": "Rajasthan", "Product": "Retractable Gates", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 1, "Office Remark": "Track wheel damage", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Hariom", "Close Date": "15-Jul-2026"},
-        {"JS ID": "JS-110", "Date": "15-Jul-2026", "Month": "July", "Client Name": "ITC Grand Bharat", "Project Name": "Service Entry Shutter", "Contact Number": "9810055443", "Address": "Tauru Road", "Location": "Gurugram", "State": "Haryana", "Product": "Fire Exit Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 3, "Office Remark": "Panic bar fitting required", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Vikram Singh", "Close Date": "16-Jul-2026"},
-        {"JS ID": "JS-111", "Date": "16-Jul-2026", "Month": "July", "Client Name": "Amazon Fulfillment Center", "Project Name": "Inbound Bay 12", "Contact Number": "9740011223", "Address": "Hosote Logistics Park", "Location": "Bengaluru", "State": "Karnataka", "Product": "Dock Shelter", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 4, "Office Remark": "Torn curtain replacement", "Current Status": "Pending", "Total Visits": 1, "Final Installer": "Ramesh Gowda", "Close Date": "N/A"},
-        {"JS ID": "JS-112", "Date": "18-Jul-2026", "Month": "July", "Client Name": "Apollo Hospitals", "Project Name": "Operation Theatre 4", "Contact Number": "9840099887", "Address": "Greams Road", "Location": "Chennai", "State": "Tamil Nadu", "Product": "Hermetic Doors", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 1, "Office Remark": "Sensor not responding", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Santhosh M", "Close Date": "19-Jul-2026"},
-        {"JS ID": "JS-113", "Date": "19-Jul-2026", "Month": "July", "Client Name": "Hero MotoCorp", "Project Name": "R&D Facility Gate", "Contact Number": "9896011223", "Address": "Kukas Industrial Area", "Location": "Jaipur", "State": "Rajasthan", "Product": "High-Speed Fold Up Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 2, "Office Remark": "High wind lock door installation", "Current Status": "Pending", "Total Visits": 1, "Final Installer": "Lokesh Kumar", "Close Date": "N/A"},
-        {"JS ID": "JS-114", "Date": "20-Jul-2026", "Month": "July", "Client Name": "L&T Construction Site", "Project Name": "Metro Depot Yard", "Contact Number": "9830055667", "Address": "New Town", "Location": "Kolkata", "State": "West Bengal", "Product": "Strong Life Shutter Motor", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 2, "Office Remark": "Motor burning issue check", "Current Status": "Pending", "Total Visits": 0, "Final Installer": "Not Assigned", "Close Date": "N/A"},
-        {"JS ID": "JS-115", "Date": "21-Jul-2026", "Month": "July", "Client Name": "Haldiram Snacks Plant", "Project Name": "Packaging Hall", "Contact Number": "9910022334", "Address": "Noida Sector 63", "Location": "Noida", "State": "Uttar Pradesh", "Product": "High-Speed Self Repairable Door", "Job Category": "New Installation", "Service Scope": "Dealer", "QTY": 3, "Office Remark": "Clean room installation", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Sanjay Dutt", "Close Date": "22-Jul-2026"}
+        {"JS ID": "JS-101", "Date": "01-Jul-2026", "Month": "July", "Client Name": "Lokesh Enterprises", "Project Name": "Warehouse Gate", "Contact Number": "9876543210", "Address": "Malviya Nagar", "Location": "Jaipur", "State": "Rajasthan", "Product": "Automatic Rolling Shutters", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 2, "Warranty": "Yes", "Office Remark": "Motor sensor issue", "Current Status": "Completed", "Total Visits": 2, "Final Installer": "Hariom", "Close Date": "02-Jul-2026"},
+        {"JS ID": "JS-102", "Date": "03-Jul-2026", "Month": "July", "Client Name": "Reliance Retail", "Project Name": "Store Front Entry", "Contact Number": "9823411122", "Address": "Connaught Place", "Location": "Delhi NCR", "State": "Delhi NCR", "Product": "Auto Sliding Door", "Job Category": "New Installation", "Service Scope": "Installation", "QTY": 4, "Warranty": "No", "Office Remark": "Fresh glass door setup", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Rajesh Sharma", "Close Date": "04-Jul-2026"},
+        {"JS ID": "JS-103", "Date": "05-Jul-2026", "Month": "July", "Client Name": "Tata Steel Logistics", "Project Name": "Dock Loading Bay", "Contact Number": "9988776655", "Address": "Sanand Industrial Area", "Location": "Ahmedabad", "State": "Gujarat", "Product": "Dock Leveller", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 3, "Warranty": "Yes", "Office Remark": "Hydraulic oil leak", "Current Status": "Pending", "Total Visits": 1, "Final Installer": "Suresh Patel", "Close Date": "N/A"},
+        {"JS ID": "JS-104", "Date": "06-Jul-2026", "Month": "July", "Client Name": "DLF Cybercity", "Project Name": "Tower B Security Gate", "Contact Number": "9711223344", "Address": "Cyber City Phase 2", "Location": "Gurugram", "State": "Haryana", "Product": "Boom Barriers", "Job Category": "New Installation", "Service Scope": "Dealer", "QTY": 2, "Warranty": "Yes", "Office Remark": "RFID Barrier setup", "Current Status": "Completed", "Total Visits": 1, "Final Installer": "Amit Kumar", "Close Date": "07-Jul-2026"},
+        {"JS ID": "JS-105", "Date": "08-Jul-2026", "Month": "July", "Client Name": "Fortis Hospital", "Project Name": "ICU Emergency Wing", "Contact Number": "9123456780", "Address": "Bannnerghatta Road", "Location": "Bengaluru", "State": "Karnataka", "Product": "Hermetic Doors", "Job Category": "Complaint", "Service Scope": "General Service", "QTY": 1, "Warranty": "No", "Office Remark": "Air seal leakage", "Current Status": "Completed", "Total Visits": 2, "Final Installer": "Pradeep Verma", "Close Date": "10-Jul-2026"}
     ])
 
 if "visit_history" not in st.session_state:
     st.session_state["visit_history"] = pd.DataFrame([
-        {"JS ID": "JS-101", "Visit No": 1, "Visit Date": "01-Jul-2026", "Installer Name": "Lokesh Kumar", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "2 Hours", "Remarks": "Sensor spare part required.", "Doc No": "N/A", "Photo URL": "N/A"},
-        {"JS ID": "JS-101", "Visit No": 2, "Visit Date": "02-Jul-2026", "Installer Name": "Hariom", "Status": "Completed", "Reason": "N/A", "Time Spent": "1.5 Hours", "Remarks": "Replaced sensor, working fine.", "Doc No": "1001", "Photo URL": "https://drive.google.com/sample1.jpg"},
-        {"JS ID": "JS-102", "Visit No": 1, "Visit Date": "04-Jul-2026", "Installer Name": "Rajesh Sharma", "Status": "Completed", "Reason": "N/A", "Time Spent": "Full Day", "Remarks": "Installed 4 glass doors smoothly.", "Doc No": "1002", "Photo URL": "https://drive.google.com/sample2.jpg"},
-        {"JS ID": "JS-103", "Visit No": 1, "Visit Date": "05-Jul-2026", "Installer Name": "Suresh Patel", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "3+ Hours", "Remarks": "Hydraulic oil seal ordered.", "Doc No": "N/A", "Photo URL": "N/A"},
-        {"JS ID": "JS-104", "Visit No": 1, "Visit Date": "07-Jul-2026", "Installer Name": "Amit Kumar", "Status": "Completed", "Reason": "N/A", "Time Spent": "2 Hours", "Remarks": "Barrier programming complete.", "Doc No": "1003", "Photo URL": "https://drive.google.com/sample3.jpg"},
-        {"JS ID": "JS-105", "Visit No": 1, "Visit Date": "08-Jul-2026", "Installer Name": "Pradeep Verma", "Status": "Pending", "Reason": "Power Outage / Technical Issue", "Time Spent": "1 Hour", "Remarks": "Power cut at site.", "Doc No": "N/A", "Photo URL": "N/A"},
-        {"JS ID": "JS-105", "Visit No": 2, "Visit Date": "10-Jul-2026", "Installer Name": "Pradeep Verma", "Status": "Completed", "Reason": "N/A", "Time Spent": "2 Hours", "Remarks": "Gasket replaced and air seal fixed.", "Doc No": "1004", "Photo URL": "https://drive.google.com/sample4.jpg"},
-        {"JS ID": "JS-106", "Visit No": 1, "Visit Date": "10-Jul-2026", "Installer Name": "Karan Singh", "Status": "Pending", "Reason": "Site Not Ready", "Time Spent": "2 Hours", "Remarks": "Civil structure work pending.", "Doc No": "N/A", "Photo URL": "N/A"},
-        {"JS ID": "JS-106", "Visit No": 2, "Visit Date": "15-Jul-2026", "Installer Name": "Karan Singh", "Status": "Pending", "Reason": "Customer Not Available", "Time Spent": "1 Hour", "Remarks": "Manager out of city.", "Doc No": "N/A", "Photo URL": "N/A"},
-        {"JS ID": "JS-107", "Visit No": 1, "Visit Date": "12-Jul-2026", "Installer Name": "Sachin Patil", "Status": "Completed", "Reason": "N/A", "Time Spent": "3+ Hours", "Remarks": "New wire cable fitted.", "Doc No": "1005", "Photo URL": "https://drive.google.com/sample5.jpg"},
-        {"JS ID": "JS-109", "Visit No": 1, "Visit Date": "15-Jul-2026", "Installer Name": "Hariom", "Status": "Completed", "Reason": "N/A", "Time Spent": "2 Hours", "Remarks": "New track wheel set installed.", "Doc No": "1006", "Photo URL": "https://drive.google.com/sample6.jpg"},
-        {"JS ID": "JS-110", "Visit No": 1, "Visit Date": "16-Jul-2026", "Installer Name": "Vikram Singh", "Status": "Completed", "Reason": "N/A", "Time Spent": "Full Day", "Remarks": "Panic doors and seals tested.", "Doc No": "1007", "Photo URL": "https://drive.google.com/sample7.jpg"},
-        {"JS ID": "JS-111", "Visit No": 1, "Visit Date": "17-Jul-2026", "Installer Name": "Ramesh Gowda", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "1 Hour", "Remarks": "Curtain material in transit.", "Doc No": "N/A", "Photo URL": "N/A"},
-        {"JS ID": "JS-112", "Visit No": 1, "Visit Date": "19-Jul-2026", "Installer Name": "Santhosh M", "Status": "Completed", "Reason": "N/A", "Time Spent": "1 Hour", "Remarks": "Radar motion sensor aligned.", "Doc No": "1008", "Photo URL": "https://drive.google.com/sample8.jpg"},
-        {"JS ID": "JS-113", "Visit No": 1, "Visit Date": "20-Jul-2026", "Installer Name": "Lokesh Kumar", "Status": "Pending", "Reason": "Power Outage / Technical Issue", "Time Spent": "2 Hours", "Remarks": "3-phase power supply pending.", "Doc No": "N/A", "Photo URL": "N/A"},
-        {"JS ID": "JS-115", "Visit No": 1, "Visit Date": "22-Jul-2026", "Installer Name": "Sanjay Dutt", "Status": "Completed", "Reason": "N/A", "Time Spent": "Full Day", "Remarks": "Installed and handed over.", "Doc No": "1009", "Photo URL": "https://drive.google.com/sample9.jpg"}
+        {"JS ID": "JS-101", "Visit No": 1, "Visit Date": "01-Jul-2026", "Installer Name": "Lokesh Kumar", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "2 Hours", "Payment Mode": "N/A", "Credit Person": "N/A", "Remarks": "Sensor spare part required.", "Doc No": "N/A", "Photo URL": "N/A"},
+        {"JS ID": "JS-101", "Visit No": 2, "Visit Date": "02-Jul-2026", "Installer Name": "Hariom", "Status": "Completed", "Reason": "N/A", "Time Spent": "1.5 Hours", "Payment Mode": "UPI", "Credit Person": "N/A", "Remarks": "Replaced sensor, working fine.", "Doc No": "1001", "Photo URL": "https://drive.google.com/sample1.jpg"},
+        {"JS ID": "JS-102", "Visit No": 1, "Visit Date": "04-Jul-2026", "Installer Name": "Rajesh Sharma", "Status": "Completed", "Reason": "N/A", "Time Spent": "Full Day", "Payment Mode": "In Account", "Credit Person": "N/A", "Remarks": "Installed 4 glass doors smoothly.", "Doc No": "1002", "Photo URL": "https://drive.google.com/sample2.jpg"},
+        {"JS ID": "JS-103", "Visit No": 1, "Visit Date": "05-Jul-2026", "Installer Name": "Suresh Patel", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "3+ Hours", "Payment Mode": "N/A", "Credit Person": "N/A", "Remarks": "Hydraulic oil seal ordered.", "Doc No": "N/A", "Photo URL": "N/A"}
     ])
 
 # Helper Function to Sync Master Sheet Status
@@ -112,7 +93,7 @@ def sync_master_status(job_id):
             st.session_state["master_data"].at[m_idx, "Close Date"] = "N/A"
 
 # ---------------------------------------------------------
-# MODULE 0: EXECUTIVE DASHBOARD MODULE (NEW)
+# MODULE 0: EXECUTIVE DASHBOARD MODULE
 # ---------------------------------------------------------
 if user_role == "📈 Executive Dashboard":
     st.subheader("📊 Executive Operations & Performance Dashboard")
@@ -133,7 +114,7 @@ if user_role == "📈 Executive Dashboard":
     
     st.markdown("---")
     
-    # 2. ANALYTICAL CHARTS (AUTOMATED & INTERACTIVE)
+    # 2. ANALYTICAL CHARTS
     chart_col1, chart_col2 = st.columns(2)
     
     with chart_col1:
@@ -153,10 +134,10 @@ if user_role == "📈 Executive Dashboard":
         scope_counts.columns = ["Service Scope", "Count"]
         st.bar_chart(scope_counts.set_index("Service Scope"), color="#4BC0C0")
         
-        st.markdown("### 🚦 Overall Status Breakdown")
-        status_counts = m_df["Current Status"].value_counts().reset_index()
-        status_counts.columns = ["Status", "Count"]
-        st.dataframe(status_counts, use_container_width=True)
+        st.markdown("### 🛡️ Warranty Coverage Breakdown")
+        war_counts = m_df["Warranty"].value_counts().reset_index()
+        war_counts.columns = ["Under Warranty", "Count"]
+        st.dataframe(war_counts, use_container_width=True)
 
 # ---------------------------------------------------------
 # MODULE 1: MANAGER PORTAL (Create & Edit Job Entry)
@@ -192,6 +173,7 @@ elif user_role == "👔 Manager - Create / Edit Job":
                 job_category = st.selectbox("Job Category (Service Type)*", ["Complaint", "New Installation"])
                 service_scope = st.selectbox("Service Scope*", ["Installation", "Dealer", "General Service"])
                 qty = st.number_input("Quantity (QTY)*", min_value=1, value=1, step=1)
+                warranty = st.selectbox("Warranty*", ["Yes", "No"])
                 office_remark = st.text_area("Initial Job Remark / Issue Description (For Installer)*")
 
             submit_job = st.form_submit_button("🚀 Generate JS ID")
@@ -214,6 +196,7 @@ elif user_role == "👔 Manager - Create / Edit Job":
                         "Job Category": job_category,
                         "Service Scope": service_scope,
                         "QTY": qty,
+                        "Warranty": warranty,
                         "Office Remark": office_remark,
                         "Current Status": "Pending",
                         "Total Visits": 0,
@@ -222,7 +205,6 @@ elif user_role == "👔 Manager - Create / Edit Job":
                     }
                     st.session_state["master_data"] = pd.concat([st.session_state["master_data"], pd.DataFrame([new_row])], ignore_index=True)
                     st.success(f"🎉 JS ID **{auto_job_id}** Successfully Created!")
-                    st.code(f"JS ID: {auto_job_id}\nClient: {client_name}\nContact: {contact_number}\nProduct: {product}", language="markdown")
 
     # ------------------ TAB 2: EDIT EXISTING JOB ------------------
     with tab2:
@@ -253,7 +235,6 @@ elif user_role == "👔 Manager - Create / Edit Job":
                     with e_col2:
                         curr_prod_idx = PRODUCT_LIST.index(job_row["Product"]) if job_row["Product"] in PRODUCT_LIST else 0
                         e_product = st.selectbox("Product Category", PRODUCT_LIST, index=curr_prod_idx)
-                        
                         e_cat = st.selectbox("Job Category", ["Complaint", "New Installation"], index=0 if job_row["Job Category"]=="Complaint" else 1)
                         
                         scopes = ["Installation", "Dealer", "General Service"]
@@ -261,6 +242,7 @@ elif user_role == "👔 Manager - Create / Edit Job":
                         e_scope = st.selectbox("Service Scope", scopes, index=curr_scope_idx)
                         
                         e_qty = st.number_input("Quantity", min_value=1, value=int(job_row["QTY"]), step=1)
+                        e_warranty = st.selectbox("Warranty", ["Yes", "No"], index=0 if job_row.get("Warranty", "Yes") == "Yes" else 1)
                         e_remark = st.text_area("Office Remark", value=job_row["Office Remark"])
 
                     update_master_btn = st.form_submit_button("💾 Save Updated Job Details")
@@ -276,6 +258,7 @@ elif user_role == "👔 Manager - Create / Edit Job":
                         st.session_state["master_data"].at[idx, "Job Category"] = e_cat
                         st.session_state["master_data"].at[idx, "Service Scope"] = e_scope
                         st.session_state["master_data"].at[idx, "QTY"] = e_qty
+                        st.session_state["master_data"].at[idx, "Warranty"] = e_warranty
                         st.session_state["master_data"].at[idx, "Office Remark"] = e_remark
                         
                         st.success(f"✅ Details for **{search_edit_id}** updated successfully!")
@@ -284,7 +267,7 @@ elif user_role == "👔 Manager - Create / Edit Job":
                 st.error(f"❌ No record found with JS ID: '{search_edit_id}'")
 
 # ---------------------------------------------------------
-# MODULE 2: TECHNICIAN PORTAL (Job Search, Visit Entry & Edit)
+# MODULE 2: TECHNICIAN PORTAL (Job Search & Visit Entry)
 # ---------------------------------------------------------
 elif user_role == "🔧 Technician - Job Visit":
     st.subheader("🔍 Technician Job Search & Visit Update")
@@ -302,11 +285,12 @@ elif user_role == "🔧 Technician - Job Visit":
             st.success(f"Job Found: **{job_details['Client Name']}** ({job_details['JS ID']})")
             
             # Client & Job Details Header
-            c1, c2, c3, c4 = st.columns(4)
+            c1, c2, c3, c4, c5 = st.columns(5)
             c1.metric("Client Name", job_details["Client Name"])
             c2.metric("Product (QTY)", f"{job_details['Product']} ({job_details['QTY']})")
             c3.metric("Type / Scope", f"{job_details['Job Category']} / {job_details['Service Scope']}")
-            c4.metric("Total Visits", job_details["Total Visits"])
+            c4.metric("Warranty", job_details.get("Warranty", "N/A"))
+            c5.metric("Total Visits", job_details["Total Visits"])
             
             st.write(f"📍 **Address:** {job_details['Address']}, {job_details['Location']}, {job_details['State']}")
             st.write(f"📞 **Contact:** {job_details['Contact Number']}")
@@ -314,9 +298,7 @@ elif user_role == "🔧 Technician - Job Visit":
             
             st.markdown("---")
             
-            # -------------------------------------------------
-            # PREVIOUS VISIT LOGS WITH EDIT FEATURE
-            # -------------------------------------------------
+            # PREVIOUS VISIT LOGS
             st.subheader("📜 Previous Visit Logs")
             v_df = st.session_state["visit_history"]
             previous_visits = v_df[v_df["JS ID"] == search_job_id].sort_values(by="Visit No", ascending=False)
@@ -332,67 +314,41 @@ elif user_role == "🔧 Technician - Job Visit":
                     
                     status_badge = "🟢 Completed" if v_status == "Completed" else "🟡 Pending"
                     
-                    col_log1, col_log2 = st.columns([4, 1])
-                    with col_log1:
-                        st.markdown(f"**# Visit #{v_no}** — **Status: {status_badge}**")
-                        st.caption(f"📅 **Date:** {v_date} | 👤 **Tech:** {v_tech} | ⏱️ **Time Spent:** {v_time}")
-                        if v_status == "Pending":
-                            st.error(f"⚠️ **Reason for Pending:** {visit['Reason']}")
-                        if visit["Doc No"] != "N/A":
-                            st.caption(f"📑 **Paper Slip No:** {visit['Doc No']}")
-                        st.write(f"💬 *Remarks:* {v_remarks}")
-                    
-                    with col_log2:
-                        edit_btn = st.button(f"✏️ Edit Visit #{v_no}", key=f"edit_btn_{v_no}")
-                        if edit_btn:
-                            st.session_state["editing_visit_no"] = v_no
-
-                    # EDIT FORM EXPANDER
-                    if st.session_state.get("editing_visit_no") == v_no:
-                        with st.expander(f"🛠️ Edit Details for Visit #{v_no}", expanded=True):
-                            with st.form(f"edit_form_{v_no}"):
-                                edit_tech = st.text_input("Installer Name", value=v_tech)
-                                edit_time = st.selectbox("Time Spent", ["30 Mins", "1 Hour", "1.5 Hours", "2 Hours", "3+ Hours", "Full Day"], index=0)
-                                edit_status = st.selectbox("Status", ["Pending", "Completed"], index=0 if v_status=="Pending" else 1)
-                                
-                                edit_reason = "N/A"
-                                if edit_status == "Pending":
-                                    edit_reason = st.selectbox("Reason for Pending", PENDING_REASONS)
-                                    
-                                edit_doc = st.text_input("Paper Slip No", value=visit["Doc No"])
-                                edit_remarks = st.text_area("Remarks", value=v_remarks)
-                                
-                                save_edit = st.form_submit_button("💾 Update Visit Entry")
-                                if save_edit:
-                                    v_idx = v_df[(v_df["JS ID"] == search_job_id) & (v_df["Visit No"] == v_no)].index[0]
-                                    st.session_state["visit_history"].at[v_idx, "Installer Name"] = edit_tech
-                                    st.session_state["visit_history"].at[v_idx, "Time Spent"] = edit_time
-                                    st.session_state["visit_history"].at[v_idx, "Status"] = edit_status
-                                    st.session_state["visit_history"].at[v_idx, "Reason"] = edit_reason
-                                    st.session_state["visit_history"].at[v_idx, "Doc No"] = edit_doc
-                                    st.session_state["visit_history"].at[v_idx, "Remarks"] = edit_remarks
-                                    
-                                    sync_master_status(search_job_id)
-                                    
-                                    st.session_state["editing_visit_no"] = None
-                                    st.success(f"✅ Visit #{v_no} successfully updated!")
-                                    st.rerun()
-
+                    st.markdown(f"**# Visit #{v_no}** — **Status: {status_badge}**")
+                    st.caption(f"📅 **Date:** {v_date} | 👤 **Tech:** {v_tech} | ⏱️ **Time Spent:** {v_time}")
+                    if visit.get("Payment Mode") and visit["Payment Mode"] != "N/A":
+                        pay_str = f"💳 **Payment Mode:** {visit['Payment Mode']}"
+                        if visit.get("Credit Person") and visit["Credit Person"] != "N/A":
+                            pay_str += f" *(Credit Given By: {visit['Credit Person']})*"
+                        st.caption(pay_str)
+                    if v_status == "Pending":
+                        st.error(f"⚠️ **Reason for Pending:** {visit['Reason']}")
+                    if visit["Doc No"] != "N/A":
+                        st.caption(f"📑 **Paper Slip No:** {visit['Doc No']}")
+                    st.write(f"💬 *Remarks:* {v_remarks}")
                     st.markdown("---")
             else:
                 st.info("ℹ️ No previous visit logs found for this JS ID. This will be Visit #1.")
             
-            # -------------------------------------------------
-            # NEW VISIT REPORT ENTRY FORM (CONDITIONALLY SHOWN)
-            # -------------------------------------------------
+            # NEW VISIT REPORT ENTRY FORM
             if current_job_status == "Completed":
                 st.success("🎉 **This Job Sheet is officially CLOSED & COMPLETED!** No further visits are required for this JS ID.")
             else:
                 next_visit_no = len(previous_visits) + 1
                 st.subheader(f"📝 Submit New Visit Report (Visit #{next_visit_no})")
                 
-                # Dynamic Status Selector
+                # Dynamic Status Selector Outside Form for Reactivity
                 status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"], key="live_status_select")
+
+                # Dynamic Payment Mode Selector
+                pay_col1, pay_col2 = st.columns(2)
+                with pay_col1:
+                    payment_mode = st.selectbox("Payment Mode*", PAYMENT_MODES, key="pay_mode_select")
+                
+                credit_person_name = "N/A"
+                with pay_col2:
+                    if payment_mode == "Credit Care of":
+                        credit_person_name = st.text_input("Technician / Team Member Name (Credit Given By)*", placeholder="Enter team member name")
 
                 with st.form("tech_visit_form"):
                     col_a, col_b = st.columns(2)
@@ -405,7 +361,7 @@ elif user_role == "🔧 Technician - Job Visit":
                         if status_update == "Pending":
                             pending_reason = st.selectbox("Reason for Pending*", PENDING_REASONS)
                         else:
-                            st.success("✅ Complete status selected. Please fill paper slip & upload photo below.")
+                            st.success("✅ Complete status selected. Fill slip & photo upload below.")
 
                     visit_remarks = st.text_area("Visit Remarks / Work Done Notes*")
 
@@ -426,6 +382,8 @@ elif user_role == "🔧 Technician - Job Visit":
                     if submit_visit:
                         if not installer_name or not visit_remarks:
                             st.error("⚠️ Technician Name and Remarks are required!")
+                        elif payment_mode == "Credit Care of" and not credit_person_name.strip():
+                            st.error("⚠️ Please specify the Technician / Team Member name who authorized 'Credit Care of'!")
                         elif status_update == "Completed" and (not physical_job_no or photo_file is None):
                             st.error("❌ Cannot complete job! Physical Job Sheet Slip No. and Photo are mandatory for completed status.")
                         else:
@@ -441,6 +399,8 @@ elif user_role == "🔧 Technician - Job Visit":
                                 "Status": status_update,
                                 "Reason": pending_reason,
                                 "Time Spent": time_spent,
+                                "Payment Mode": payment_mode,
+                                "Credit Person": credit_person_name if payment_mode == "Credit Care of" else "N/A",
                                 "Remarks": visit_remarks,
                                 "Doc No": physical_job_no,
                                 "Photo URL": photo_url
