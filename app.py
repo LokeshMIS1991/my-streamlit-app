@@ -22,8 +22,17 @@ SCOPE = [
 @st.cache_resource
 def get_gspread_client():
     creds_dict = dict(st.secrets["gcp_service_account"])
+    
+    # Private Key Newline Fix (In case \\n isn't parsed correctly by Streamlit secrets)
+    if "private_key" in creds_dict:
+        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+        
     creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
     return gspread.authorize(creds)
+
+sheet_connected = False
+ws_master = None
+ws_visit = None
 
 try:
     gc = get_gspread_client()
@@ -36,7 +45,7 @@ try:
     sheet_connected = True
 except Exception as e:
     sheet_connected = False
-    st.error(f"⚠️ Google Sheets Connection Issue: {e}")
+    st.error(f"⚠️ Google Sheets Connection Issue: {type(e).__name__} - {str(e)}")
 
 # Helper Functions to Load & Save to Google Sheets
 def load_data_from_sheets():
@@ -50,10 +59,8 @@ def load_data_from_sheets():
             st.warning(f"Could not load sheets automatically: {err}")
 
 # ---------------------------------------------------------
-# DIRECT LOGO (Base64 Render) & CUSTOM CSS STYLING
+# CUSTOM CSS STYLING
 # ---------------------------------------------------------
-LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAR8AAABACAYAAADy6Gv4AAAACXBIWXMAAAsTAAALEwEAmpwYAAAKT2lDQ1BQaG90b3Nob3AgSUNDIFByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iAl86oA04vAlJInUQQESgiBtAg4oDAgEUM4q4CS1kUG6yI4gid4DYWFAUJAkcERsplit3ACyIR4f5Y28y8fy75P3337W33vfc28AAtAK3i8nnYAgAyA0KGh44OC89vGh4A7B8Aw8AMACAgB8P75JkAYC883i3XvwDA1n36klAnAC3p8wA3Bzg8AEC3AE5mdAIA8AkAnpOTMAMADgF4P9mEZAyA2AEg8mBAjAIAZADAZI3AkgGACQBIR3Y2BwBMAFA/W2U+AABTAA4GAIYIAEAGAD4L4B8A2AMAPw3gXABQAwA2AGgBgAnAHwCwAgAtAIAWADsA4AnACQCFAeABAH4CwGIAJACABgBoAYAegAoAnAFAagBqAEEA4BUAwAIAcAFgGAB4AGACAE4ARAB8ANAAIAUAMQCQB4AcAFAHQBUAxgB4AKACgAgAGQC8AFAJAEkARACMAfAAQAcA0AEAZQDoAeAEAGUAeACgDgBFAKAAIA4AlgDAA8B/AegBQB8AhAHgBwD2AKACgI8AmACADgCcAHAAwAoAugC8AGAGAG4AwAQA2AEAGwAwAYAgAHA/AEYAsAHAEQCYAIAWAJ4AeAHACAD8AGAGAAYAMAMAIwCwA4AjAHA/AHAAwAcAhwBsAgAXAN4AgAEAdQCwAQAJAEQA2AEAYAA="
-
 custom_css = """
 <style>
     /* Main Background & Fonts */
@@ -211,8 +218,9 @@ if "visit_history" not in st.session_state:
         {"JS ID": "JS-103", "Visit No": 1, "Visit Date": "05-Jul-2026", "Installer Name": "Suresh Patel", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "3+ Hours", "Payment Mode": "N/A", "Credit Person": "N/A", "Remarks": "Hydraulic oil seal ordered.", "Doc No": "N/A", "Photo URL": "N/A"}
     ])
 
-# Load fresh data from Sheets if connected
-load_data_from_sheets()
+# Auto Load from Google Sheets if connected
+if sheet_connected:
+    load_data_from_sheets()
 
 # Helper Function to Sync Master Sheet Status
 def sync_master_status(job_id):
@@ -351,7 +359,7 @@ elif user_role == "👔 Manager - Create / Edit Job":
                     st.session_state["master_data"] = pd.concat([st.session_state["master_data"], pd.DataFrame([new_row])], ignore_index=True)
                     
                     # Append row to Google Sheets
-                    if sheet_connected:
+                    if sheet_connected and ws_master:
                         try:
                             ws_master.append_row(list(new_row.values()))
                         except Exception as e:
@@ -559,7 +567,7 @@ elif user_role == "🔧 Technician - Job Visit":
                             st.session_state["visit_history"] = pd.concat([st.session_state["visit_history"], pd.DataFrame([new_visit_row])], ignore_index=True)
 
                             # Sync to Google Sheets
-                            if sheet_connected:
+                            if sheet_connected and ws_visit:
                                 try:
                                     ws_visit.append_row(list(new_visit_row.values()))
                                 except Exception as e:
