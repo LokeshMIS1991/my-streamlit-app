@@ -4,7 +4,7 @@ from datetime import datetime
 
 # Page Configuration
 st.set_page_config(
-    page_title="Sidharth Shutter & Automation CRM", 
+    page_title="Sidharth Shutters & Automations CRM", 
     page_icon="🛠️", 
     layout="wide"
 )
