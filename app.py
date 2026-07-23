@@ -4,7 +4,7 @@ from datetime import datetime
 
 # Page Configuration
 st.set_page_config(
-    page_title="Sidharth Shutters & Automations CRM", 
+    page_title="Sidharth Shutter & Automation CRM", 
     page_icon="🛠️", 
     layout="wide"
 )
@@ -103,7 +103,7 @@ with st.sidebar:
     ])
 
     st.markdown("---")
-    st.caption("© Sidharth Shutter & Automation v1.0")
+    st.caption("© Sidharth Shutters & Automations Private Limtited v1.0")
 
 # ---------------------------------------------------------
 # TOP APP HEADER WITH BRANDING
@@ -111,7 +111,7 @@ with st.sidebar:
 st.markdown("""
     <div class="brand-header">
         <div>
-            <h1 class="brand-title">Sidharth Shutter & Automation</h1>
+            <h1 class="brand-title">Sidharth Shutters & Automations Private Limited</h1>
             <p class="brand-subtitle">Field Operations & Technician Service Operations Portal</p>
         </div>
     </div>
