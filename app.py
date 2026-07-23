@@ -14,15 +14,21 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# GOOGLE SHEETS LIVE CONNECTION SETUP
+# GOOGLE SHEETS LIVE CONNECTION SETUP (AUTO-CLEAN PEM FIX)
 # ---------------------------------------------------------
 @st.cache_resource
 def get_gspread_client():
-    """Google Cloud Credentials ko Streamlit Secrets se load karta hai"""
+    """Google Cloud Credentials ko Streamlit Secrets se safely load karta hai"""
     try:
+        # Dictionary ki copy banayein
         creds_dict = dict(st.secrets["gcp_service_account"])
+        
+        # Private key formatting fix: PEM string ke backslashes aur formatting normalize karein
         if "private_key" in creds_dict:
-            creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+            pk = creds_dict["private_key"]
+            pk = pk.replace("\\n", "\n").strip()
+            creds_dict["private_key"] = pk
+            
         return gspread.service_account_from_dict(creds_dict)
     except Exception as e:
         st.error(f"⚠️ Credentials Parsing Error: {e}")
@@ -60,66 +66,19 @@ def load_data_from_sheets():
 # ---------------------------------------------------------
 custom_css = """
 <style>
-    .stApp {
-        background-color: #F8FAFC;
-    }
+    .stApp { background-color: #F8FAFC; }
     .brand-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #FFFFFF;
-        padding: 20px 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        border-left: 6px solid #0B3C5D;
+        display: flex; align-items: center; justify-content: space-between;
+        background: #FFFFFF; padding: 20px 25px; border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border-left: 6px solid #0B3C5D;
         margin-bottom: 25px;
     }
-    .brand-title {
-        font-size: 26px;
-        font-weight: 800;
-        color: #0B3C5D;
-        margin: 0;
-        line-height: 1.2;
-    }
-    .brand-subtitle {
-        font-size: 14px;
-        color: #64748B;
-        margin-top: 4px;
-        margin-bottom: 0;
-        font-weight: 500;
-    }
-    section[data-testid="stSidebar"] {
-        background-color: #FFFFFF;
-        border-right: 1px solid #E2E8F0;
-    }
-    div[data-testid="stMetric"] {
-        background-color: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    }
-    .stButton>button {
-        background-color: #0B3C5D;
-        color: white;
-        border-radius: 8px;
-        font-weight: 600;
-        border: none;
-        padding: 10px 24px;
-        transition: all 0.3s ease;
-    }
-    .stButton>button:hover {
-        background-color: #1D5D8A;
-        color: white;
-    }
-    .job-card {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #E2E8F0;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-    }
+    .brand-title { font-size: 26px; font-weight: 800; color: #0B3C5D; margin: 0; line-height: 1.2; }
+    .brand-subtitle { font-size: 14px; color: #64748B; margin-top: 4px; font-weight: 500; }
+    section[data-testid="stSidebar"] { background-color: #FFFFFF; border-right: 1px solid #E2E8F0; }
+    div[data-testid="stMetric"] { background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 15px; border-radius: 10px; }
+    .stButton>button { background-color: #0B3C5D; color: white; border-radius: 8px; font-weight: 600; border: none; padding: 10px 24px; }
+    .stButton>button:hover { background-color: #1D5D8A; color: white; }
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
@@ -146,15 +105,11 @@ PRODUCT_LIST = [
     "Hanger Door", "Impact Barrier", "Manual Swing Gate", "Manual Sliding Gate", "Other"
 ]
 
-PENDING_REASONS = [
-    "Material Not Available", "Power Outage / Technical Issue", 
-    "Customer Not Available", "Site Not Ready", "Other"
-]
-
+PENDING_REASONS = ["Material Not Available", "Power Outage / Technical Issue", "Customer Not Available", "Site Not Ready", "Other"]
 PAYMENT_MODES = ["UPI", "Cash", "In Account", "Credit Care of"]
 
 # ---------------------------------------------------------
-# INITIALIZE DUMMY SESSION STATE DATA (Fallback)
+# INITIALIZE SESSION STATE DATA
 # ---------------------------------------------------------
 if "master_data" not in st.session_state:
     st.session_state["master_data"] = pd.DataFrame([
@@ -176,7 +131,6 @@ if "visit_history" not in st.session_state:
 if sheet_connected:
     load_data_from_sheets()
 
-# Master Sheet updates automatically when visits change
 def sync_master_status(job_id):
     v_df = st.session_state["visit_history"]
     m_df = st.session_state["master_data"]
@@ -193,28 +147,24 @@ def sync_master_status(job_id):
             st.session_state["master_data"].at[m_idx, "Close Date"] = "N/A"
 
 # ---------------------------------------------------------
-# SIDEBAR NAVIGATION & BRANDING
+# SIDEBAR NAVIGATION
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("""
         <div style="text-align: center; padding: 10px 0;">
             <h2 style="color: #0B3C5D; font-size: 20px; margin: 0; font-weight: 800;">SIDHARTH</h2>
-            <p style="color: #32A852; font-size: 11px; margin: 0; font-weight: 700; letter-spacing: 1px;">SHUTTER & AUTOMATION</p>
+            <p style="color: #32A852; font-size: 11px; margin: 0; font-weight: 700;">SHUTTER & AUTOMATION</p>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
     
-    user_role = st.radio(
-        "Navigation Options:", 
-        [
-            "📈 Executive Dashboard",
-            "👔 Manager - Create / Edit Job", 
-            "🔧 Technician - Job Visit", 
-            "📊 View All Jobs (Master Sheet)",
-            "📜 View Visit History Database"
-        ]
-    )
-    
+    user_role = st.radio("Navigation Options:", [
+        "📈 Executive Dashboard",
+        "👔 Manager - Create / Edit Job", 
+        "🔧 Technician - Job Visit", 
+        "📊 View All Jobs (Master Sheet)",
+        "📜 View Visit History Database"
+    ])
     st.markdown("---")
     
     if sheet_connected:
@@ -242,36 +192,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# MODULE 1: EXECUTIVE DASHBOARD
+# MODULES
 # ---------------------------------------------------------
 if user_role == "📈 Executive Dashboard":
     st.subheader("📊 Executive Operations & Performance Dashboard")
-    
     m_df = st.session_state["master_data"]
     total_jobs = len(m_df)
     completed_jobs = len(m_df[m_df["Current Status"] == "Completed"]) if not m_df.empty and "Current Status" in m_df else 0
     pending_jobs = len(m_df[m_df["Current Status"] == "Pending"]) if not m_df.empty and "Current Status" in m_df else 0
     completion_rate = round((completed_jobs / total_jobs * 100), 1) if total_jobs > 0 else 0
     
-    # Key Performance Indicators (KPIs)
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     kpi1.metric("📌 Total JS IDs Generated", total_jobs)
     kpi2.metric("🟢 Completed Jobs", completed_jobs, f"{completion_rate}% Done")
     kpi3.metric("🟡 Pending Jobs", pending_jobs, f"-{round(100 - completion_rate, 1)}%", delta_color="inverse")
     kpi4.metric("⚙️ Service Completion Rate", f"{completion_rate}%")
-    
     st.markdown("---")
     
-    # Analytics Charts
     chart_col1, chart_col2 = st.columns(2)
-    
     with chart_col1:
         st.markdown("### 🏷️ Jobs Breakdown by Category")
         if not m_df.empty and "Job Category" in m_df:
             cat_counts = m_df["Job Category"].value_counts().reset_index()
             cat_counts.columns = ["Job Category", "Count"]
             st.bar_chart(cat_counts.set_index("Job Category"), color="#0B3C5D")
-            
         st.markdown("### 🗺️ State-wise Operations Distribution")
         if not m_df.empty and "State" in m_df:
             state_counts = m_df["State"].value_counts().reset_index()
@@ -284,22 +228,16 @@ if user_role == "📈 Executive Dashboard":
             scope_counts = m_df["Service Scope"].value_counts().reset_index()
             scope_counts.columns = ["Service Scope", "Count"]
             st.bar_chart(scope_counts.set_index("Service Scope"), color="#1D5D8A")
-            
         st.markdown("### 🛡️ Warranty Coverage Breakdown")
         if not m_df.empty and "Warranty" in m_df:
             war_counts = m_df["Warranty"].value_counts().reset_index()
             war_counts.columns = ["Under Warranty", "Count"]
             st.dataframe(war_counts, use_container_width=True)
 
-# ---------------------------------------------------------
-# MODULE 2: MANAGER PORTAL (CREATE / EDIT JOB)
-# ---------------------------------------------------------
 elif user_role == "👔 Manager - Create / Edit Job":
     st.subheader("📋 Manager Operations Portal")
-    
     tab1, tab2 = st.tabs(["➕ Create New JS ID / Job Sheet", "✏️ Search & Edit Job Details"])
     
-    # Tab 1: Create New JS ID
     with tab1:
         existing_jobs = len(st.session_state["master_data"])
         auto_job_id = f"JS-{101 + existing_jobs}"
@@ -311,7 +249,6 @@ elif user_role == "👔 Manager - Create / Edit Job":
 
         with st.form("new_job_form", clear_on_submit=True):
             col1, col2 = st.columns(2)
-            
             with col1:
                 client_name = st.text_input("Client Name*")
                 project_name = st.text_input("Project Name (Optional)", value="N/A")
@@ -319,7 +256,6 @@ elif user_role == "👔 Manager - Create / Edit Job":
                 address = st.text_area("Full Address*")
                 location = st.text_input("City / Zone Location*")
                 state = st.selectbox("State*", INDIAN_STATES, index=INDIAN_STATES.index("Rajasthan") if "Rajasthan" in INDIAN_STATES else 0)
-                
             with col2:
                 product = st.selectbox("Product Category*", PRODUCT_LIST)
                 job_category = st.selectbox("Job Category (Service Type)*", ["Complaint", "New Installation"])
@@ -329,7 +265,6 @@ elif user_role == "👔 Manager - Create / Edit Job":
                 office_remark = st.text_area("Initial Job Remark / Issue Description (For Installer)*")
 
             submit_job = st.form_submit_button("🚀 Generate & Save JS ID")
-            
             if submit_job:
                 if not client_name or not contact_number or not address or not office_remark:
                     st.error("⚠️ Please fill all mandatory fields!")
@@ -343,16 +278,13 @@ elif user_role == "👔 Manager - Create / Edit Job":
                         "Total Visits": 0, "Final Installer": "Not Assigned", "Close Date": "N/A"
                     }
                     st.session_state["master_data"] = pd.concat([st.session_state["master_data"], pd.DataFrame([new_row])], ignore_index=True)
-                    
                     if sheet_connected and ws_master:
                         try:
                             ws_master.append_row(list(new_row.values()))
                         except Exception as e:
                             st.warning(f"Failed to sync to Google Sheet: {e}")
-                            
                     st.success(f"🎉 JS ID **{auto_job_id}** Successfully Created & Saved!")
 
-    # Tab 2: Edit Existing Job
     with tab2:
         search_edit_id = st.text_input("Enter JS ID to Search & Edit (e.g. JS-101):").strip().upper()
         if search_edit_id:
@@ -361,9 +293,6 @@ elif user_role == "👔 Manager - Create / Edit Job":
             if not match.empty:
                 idx = match.index[0]
                 job_row = match.iloc[0]
-                
-                st.markdown(f"### Editing Job Sheet: **{search_edit_id}**")
-                
                 with st.form("edit_job_sheet_form"):
                     e_col1, e_col2 = st.columns(2)
                     with e_col1:
@@ -374,7 +303,6 @@ elif user_role == "👔 Manager - Create / Edit Job":
                         e_location = st.text_input("City / Zone Location", value=job_row["Location"])
                         curr_state_idx = INDIAN_STATES.index(job_row["State"]) if job_row["State"] in INDIAN_STATES else 0
                         e_state = st.selectbox("State", INDIAN_STATES, index=curr_state_idx)
-                        
                     with e_col2:
                         curr_prod_idx = PRODUCT_LIST.index(job_row["Product"]) if job_row["Product"] in PRODUCT_LIST else 0
                         e_product = st.selectbox("Product Category", PRODUCT_LIST, index=curr_prod_idx)
@@ -401,26 +329,18 @@ elif user_role == "👔 Manager - Create / Edit Job":
                         st.session_state["master_data"].at[idx, "Office Remark"] = e_remark
                         st.success(f"✅ Details for **{search_edit_id}** updated successfully!")
                         st.rerun()
-            else:
-                st.warning(f"❌ No JS ID matching '{search_edit_id}' found.")
 
-# ---------------------------------------------------------
-# MODULE 3: TECHNICIAN JOB VISIT UPDATE
-# ---------------------------------------------------------
 elif user_role == "🔧 Technician - Job Visit":
     st.subheader("🔍 Technician Job Search & Visit Report Update")
-    
     search_job_id = st.text_input("Enter JS ID to Search (e.g. JS-101):").strip().upper()
     
     if search_job_id:
         master_df = st.session_state["master_data"]
         job_match = master_df[master_df["JS ID"] == search_job_id]
-        
         if not job_match.empty:
             job_details = job_match.iloc[0]
             current_job_status = job_details["Current Status"]
             
-            # Summary Metrics for Technician
             c1, c2, c3, c4, c5 = st.columns(5)
             c1.metric("Client Name", job_details["Client Name"])
             c2.metric("Product (QTY)", f"{job_details['Product']} ({job_details['QTY']})")
@@ -433,8 +353,6 @@ elif user_role == "🔧 Technician - Job Visit":
             st.warning(f"📝 **Job Description / Issue Note:** {job_details['Office Remark']}")
             st.markdown("---")
             
-            # Show History of Previous Visits
-            st.subheader("📜 Visit History for this JS ID")
             v_df = st.session_state["visit_history"]
             previous_visits = v_df[v_df["JS ID"] == search_job_id].sort_values(by="Visit No", ascending=False) if not v_df.empty else pd.DataFrame()
             
@@ -443,25 +361,15 @@ elif user_role == "🔧 Technician - Job Visit":
                     with st.expander(f"📍 Visit #{visit['Visit No']} — Status: {visit['Status']} ({visit['Visit Date']})"):
                         st.write(f"**Installer:** {visit['Installer Name']} | **Time Spent:** {visit['Time Spent']}")
                         st.write(f"**Remarks:** {visit['Remarks']}")
-                        if visit["Status"] == "Pending":
-                            st.write(f"**Pending Reason:** {visit['Reason']}")
-                        else:
-                            st.write(f"**Paper Job Sheet No:** {visit['Doc No']}")
-                            st.write(f"**Payment Mode:** {visit['Payment Mode']} (Credit Person: {visit['Credit Person']})")
-            else:
-                st.info("No previous visits logged for this JS ID.")
-
             st.markdown("---")
 
-            # Form to Submit New Visit
             if current_job_status == "Completed":
-                st.success("🎉 **This Job Sheet is officially CLOSED & COMPLETED! No further visits required.**")
+                st.success("🎉 **This Job Sheet is officially CLOSED & COMPLETED!**")
             else:
                 next_visit_no = len(previous_visits) + 1
                 st.subheader(f"📝 Submit New Visit Report (Visit #{next_visit_no})")
                 
                 status_update = st.selectbox("Update Work Status*", ["Pending", "Completed"])
-                
                 pay_col1, pay_col2 = st.columns(2)
                 with pay_col1:
                     payment_mode = st.selectbox("Payment Mode*", PAYMENT_MODES)
@@ -506,7 +414,6 @@ elif user_role == "🔧 Technician - Job Visit":
                                 "Remarks": visit_remarks, "Doc No": physical_job_no, "Photo URL": photo_url
                             }
                             st.session_state["visit_history"] = pd.concat([st.session_state["visit_history"], pd.DataFrame([new_visit_row])], ignore_index=True)
-                            
                             if sheet_connected and ws_visit:
                                 try:
                                     ws_visit.append_row(list(new_visit_row.values()))
@@ -515,22 +422,13 @@ elif user_role == "🔧 Technician - Job Visit":
 
                             sync_master_status(search_job_id)
                             st.balloons()
-                            st.success(f"🎉 Visit Report #{next_visit_no} successfully submitted!")
+                            st.success(f"🎉 Visit Report submitted!")
                             st.rerun()
 
-        else:
-            st.error(f"❌ JS ID '{search_job_id}' not found in database. Please verify.")
-
-# ---------------------------------------------------------
-# MODULE 4: MASTER SHEET DATABASE VIEW
-# ---------------------------------------------------------
 elif user_role == "📊 View All Jobs (Master Sheet)":
     st.subheader("📋 Master Job Sheet Database View")
     st.dataframe(st.session_state["master_data"], use_container_width=True)
 
-# ---------------------------------------------------------
-# MODULE 5: VISIT HISTORY DATABASE VIEW
-# ---------------------------------------------------------
 elif user_role == "📜 View Visit History Database":
     st.subheader("📜 Visit History Database View")
     st.dataframe(st.session_state["visit_history"], use_container_width=True)
