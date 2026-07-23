@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import gspread
+from google.oauth2.service_account import Credentials
 
 # Page Configuration
 st.set_page_config(
@@ -10,9 +12,46 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
+# GOOGLE SHEETS LIVE CONNECTION SETUP
+# ---------------------------------------------------------
+SCOPE = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
+@st.cache_resource
+def get_gspread_client():
+    creds_dict = dict(st.secrets["gcp_service_account"])
+    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
+    return gspread.authorize(creds)
+
+try:
+    gc = get_gspread_client()
+    SHEET_ID = "1UwEGSLm2utcd4asWIRlylf3e11O-lI9OR0j3ptaBSWM"
+    sh = gc.open_by_key(SHEET_ID)
+    
+    # Worksheets setup
+    ws_master = sh.worksheet("Master Sheet")
+    ws_visit = sh.worksheet("Visit History")
+    sheet_connected = True
+except Exception as e:
+    sheet_connected = False
+    st.error(f"⚠️ Google Sheets Connection Issue: {e}")
+
+# Helper Functions to Load & Save to Google Sheets
+def load_data_from_sheets():
+    if sheet_connected:
+        try:
+            m_data = ws_master.get_all_records()
+            v_data = ws_visit.get_all_records()
+            st.session_state["master_data"] = pd.DataFrame(m_data) if m_data else pd.DataFrame()
+            st.session_state["visit_history"] = pd.DataFrame(v_data) if v_data else pd.DataFrame()
+        except Exception as err:
+            st.warning(f"Could not load sheets automatically: {err}")
+
+# ---------------------------------------------------------
 # DIRECT LOGO (Base64 Render) & CUSTOM CSS STYLING
 # ---------------------------------------------------------
-# Embedded High-Res Logo
 LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAR8AAABACAYAAADy6Gv4AAAACXBIWXMAAAsTAAALEwEAmpwYAAAKT2lDQ1BQaG90b3Nob3AgSUNDIFByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iAl86oA04vAlJInUQQESgiBtAg4oDAgEUM4q4CS1kUG6yI4gid4DYWFAUJAkcERsplit3ACyIR4f5Y28y8fy75P3337W33vfc28AAtAK3i8nnYAgAyA0KGh44OC89vGh4A7B8Aw8AMACAgB8P75JkAYC883i3XvwDA1n36klAnAC3p8wA3Bzg8AEC3AE5mdAIA8AkAnpOTMAMADgF4P9mEZAyA2AEg8mBAjAIAZADAZI3AkgGACQBIR3Y2BwBMAFA/W2U+AABTAA4GAIYIAEAGAD4L4B8A2AMAPw3gXABQAwA2AGgBgAnAHwCwAgAtAIAWADsA4AnACQCFAeABAH4CwGIAJACABgBoAYAegAoAnAFAagBqAEEA4BUAwAIAcAFgGAB4AGACAE4ARAB8ANAAIAUAMQCQB4AcAFAHQBUAxgB4AKACgAgAGQC8AFAJAEkARACMAfAAQAcA0AEAZQDoAeAEAGUAeACgDgBFAKAAIA4AlgDAA8B/AegBQB8AhAHgBwD2AKACgI8AmACADgCcAHAAwAoAugC8AGAGAG4AwAQA2AEAGwAwAYAgAHA/AEYAsAHAEQCYAIAWAJ4AeAHACAD8AGAGAAYAMAMAIwCwA4AjAHA/AHAAwAcAhwBsAgAXAN4AgAEAdQCwAQAJAEQA2AEAYAA="
 
 custom_css = """
@@ -103,7 +142,11 @@ with st.sidebar:
     ])
 
     st.markdown("---")
-    st.caption("© Sidharth Shutters & Automations Private Limtited v1.0")
+    if st.button("🔄 Sync with Google Sheets"):
+        load_data_from_sheets()
+        st.success("Refreshed with Google Sheets!")
+
+    st.caption("© Sidharth Shutters & Automations Private Limited v1.0")
 
 # ---------------------------------------------------------
 # TOP APP HEADER WITH BRANDING
@@ -168,6 +211,9 @@ if "visit_history" not in st.session_state:
         {"JS ID": "JS-103", "Visit No": 1, "Visit Date": "05-Jul-2026", "Installer Name": "Suresh Patel", "Status": "Pending", "Reason": "Material Not Available", "Time Spent": "3+ Hours", "Payment Mode": "N/A", "Credit Person": "N/A", "Remarks": "Hydraulic oil seal ordered.", "Doc No": "N/A", "Photo URL": "N/A"}
     ])
 
+# Load fresh data from Sheets if connected
+load_data_from_sheets()
+
 # Helper Function to Sync Master Sheet Status
 def sync_master_status(job_id):
     v_df = st.session_state["visit_history"]
@@ -197,8 +243,8 @@ if user_role == "📈 Executive Dashboard":
     
     # 1. TOP METRICS CARDS
     total_jobs = len(m_df)
-    completed_jobs = len(m_df[m_df["Current Status"] == "Completed"])
-    pending_jobs = len(m_df[m_df["Current Status"] == "Pending"])
+    completed_jobs = len(m_df[m_df["Current Status"] == "Completed"]) if not m_df.empty and "Current Status" in m_df else 0
+    pending_jobs = len(m_df[m_df["Current Status"] == "Pending"]) if not m_df.empty and "Current Status" in m_df else 0
     completion_rate = round((completed_jobs / total_jobs * 100), 1) if total_jobs > 0 else 0
     
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
@@ -214,25 +260,29 @@ if user_role == "📈 Executive Dashboard":
     
     with chart_col1:
         st.markdown("### 🏷️ Jobs by Category")
-        cat_counts = m_df["Job Category"].value_counts().reset_index()
-        cat_counts.columns = ["Job Category", "Count"]
-        st.bar_chart(cat_counts.set_index("Job Category"), color="#0B3C5D")
+        if not m_df.empty and "Job Category" in m_df:
+            cat_counts = m_df["Job Category"].value_counts().reset_index()
+            cat_counts.columns = ["Job Category", "Count"]
+            st.bar_chart(cat_counts.set_index("Job Category"), color="#0B3C5D")
         
         st.markdown("### 🗺️ State-wise Distribution")
-        state_counts = m_df["State"].value_counts().reset_index()
-        state_counts.columns = ["State", "Total Jobs"]
-        st.bar_chart(state_counts.set_index("State"), color="#32A852")
+        if not m_df.empty and "State" in m_df:
+            state_counts = m_df["State"].value_counts().reset_index()
+            state_counts.columns = ["State", "Total Jobs"]
+            st.bar_chart(state_counts.set_index("State"), color="#32A852")
 
     with chart_col2:
         st.markdown("### 🎯 Jobs by Service Scope")
-        scope_counts = m_df["Service Scope"].value_counts().reset_index()
-        scope_counts.columns = ["Service Scope", "Count"]
-        st.bar_chart(scope_counts.set_index("Service Scope"), color="#1D5D8A")
+        if not m_df.empty and "Service Scope" in m_df:
+            scope_counts = m_df["Service Scope"].value_counts().reset_index()
+            scope_counts.columns = ["Service Scope", "Count"]
+            st.bar_chart(scope_counts.set_index("Service Scope"), color="#1D5D8A")
         
         st.markdown("### 🛡️ Warranty Coverage Breakdown")
-        war_counts = m_df["Warranty"].value_counts().reset_index()
-        war_counts.columns = ["Under Warranty", "Count"]
-        st.dataframe(war_counts, use_container_width=True)
+        if not m_df.empty and "Warranty" in m_df:
+            war_counts = m_df["Warranty"].value_counts().reset_index()
+            war_counts.columns = ["Under Warranty", "Count"]
+            st.dataframe(war_counts, use_container_width=True)
 
 # ---------------------------------------------------------
 # MODULE 1: MANAGER PORTAL (Create & Edit Job Entry)
@@ -299,7 +349,15 @@ elif user_role == "👔 Manager - Create / Edit Job":
                         "Close Date": "N/A"
                     }
                     st.session_state["master_data"] = pd.concat([st.session_state["master_data"], pd.DataFrame([new_row])], ignore_index=True)
-                    st.success(f"🎉 JS ID **{auto_job_id}** Successfully Created!")
+                    
+                    # Append row to Google Sheets
+                    if sheet_connected:
+                        try:
+                            ws_master.append_row(list(new_row.values()))
+                        except Exception as e:
+                            st.warning(f"Failed to sync to Google Sheet: {e}")
+
+                    st.success(f"🎉 JS ID **{auto_job_id}** Successfully Created & Saved!")
 
     # ------------------ TAB 2: EDIT EXISTING JOB ------------------
     with tab2:
@@ -396,7 +454,7 @@ elif user_role == "🔧 Technician - Job Visit":
             # PREVIOUS VISIT LOGS
             st.subheader("📜 Previous Visit Logs")
             v_df = st.session_state["visit_history"]
-            previous_visits = v_df[v_df["JS ID"] == search_job_id].sort_values(by="Visit No", ascending=False)
+            previous_visits = v_df[v_df["JS ID"] == search_job_id].sort_values(by="Visit No", ascending=False) if not v_df.empty else pd.DataFrame()
             
             if not previous_visits.empty:
                 for _, visit in previous_visits.iterrows():
@@ -499,6 +557,13 @@ elif user_role == "🔧 Technician - Job Visit":
                                 "Photo URL": photo_url
                             }
                             st.session_state["visit_history"] = pd.concat([st.session_state["visit_history"], pd.DataFrame([new_visit_row])], ignore_index=True)
+
+                            # Sync to Google Sheets
+                            if sheet_connected:
+                                try:
+                                    ws_visit.append_row(list(new_visit_row.values()))
+                                except Exception as e:
+                                    st.warning(f"Failed to sync visit to Google Sheet: {e}")
 
                             sync_master_status(search_job_id)
                             
