@@ -58,7 +58,6 @@ def get_gspread_client():
         return gspread.authorize(creds)
     return None
 
-# Opening via Exact Sheet Name
 SPREADSHEET_NAME = "Sidharth Shutter CRM Master"
 
 def fetch_data():
@@ -135,20 +134,21 @@ nav_option = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 
-# Global Date / Month Filter
-st.sidebar.subheader("📅 Date / Month Filter")
-filter_type = st.sidebar.selectbox("Filter Data By:", ["All Time", "Select Month/Year", "Custom Date Range"])
+# ALWAYS VISIBLE Date / Month Filter
+st.sidebar.subheader("📅 Data Filters")
+filter_mode = st.sidebar.radio("Filter By:", ["All Data", "By Month & Year", "Date Range"])
 
-selected_month = None
-selected_year = None
+selected_month = "All"
+selected_year = "All"
 start_date = None
 end_date = None
 
-if filter_type == "Select Month/Year":
-    selected_month = st.sidebar.selectbox("Month", ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
-    selected_year = st.sidebar.selectbox("Year", [2024, 2025, 2026, 2027])
-elif filter_type == "Custom Date Range":
-    date_range = st.sidebar.date_input("Select Range", [])
+if filter_mode == "By Month & Year":
+    selected_month = st.sidebar.selectbox("Select Month", ["All", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], index=datetime.now().month)
+    selected_year = st.sidebar.selectbox("Select Year", ["All", 2024, 2025, 2026, 2027], index=3) # Default 2026
+
+elif filter_mode == "Date Range":
+    date_range = st.sidebar.date_input("Select Start & End Date", [])
     if len(date_range) == 2:
         start_date, end_date = date_range[0], date_range[1]
 
@@ -159,10 +159,13 @@ def filter_dataframe(df, date_col):
     
     filtered_df = df.copy()
     
-    if filter_type == "Select Month/Year" and selected_month and selected_year:
-        if 'Month' in filtered_df.columns:
-            filtered_df = filtered_df[(filtered_df['Month'] == selected_month) & (filtered_df[date_col].astype(str).str.contains(str(selected_year), na=False))]
-    elif filter_type == "Custom Date Range" and start_date and end_date:
+    if filter_mode == "By Month & Year":
+        if selected_month != "All" and 'Month' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['Month'] == selected_month]
+        if selected_year != "All":
+            filtered_df = filtered_df[filtered_df[date_col].astype(str).str.contains(str(selected_year), na=False)]
+            
+    elif filter_mode == "Date Range" and start_date and end_date:
         parsed_col = date_col + '_Parsed'
         if parsed_col in filtered_df.columns:
             filtered_df = filtered_df[(filtered_df[parsed_col].dt.date >= start_date) & (filtered_df[parsed_col].dt.date <= end_date)]
