@@ -122,7 +122,6 @@ def upload_photo_to_drive(uploaded_file, filename):
         
         media = MediaIoBaseUpload(io.BytesIO(uploaded_file.getvalue()), mimetype=uploaded_file.type)
         
-        # supportsAllDrives=True & supportsTeamDrives=True for Shared Drive support
         file = drive_service.files().create(
             body=file_metadata, 
             media_body=media, 
@@ -131,7 +130,6 @@ def upload_photo_to_drive(uploaded_file, filename):
             supportsTeamDrives=True
         ).execute()
         
-        # Make photo viewable via public link
         drive_service.permissions().create(
             fileId=file.get('id'),
             body={'role': 'reader', 'type': 'anyone'},
@@ -189,6 +187,31 @@ def save_visit_entry(visit_dict):
         st.error(f"Visit Save Error: {e}")
         return False
 
+def update_master_on_visit(js_id, visit_count, status, installer_name, close_time):
+    """Update Master Sheet Total Visits, Status, Installer Name, and Close Date"""
+    try:
+        client = get_gspread_client()
+        sheet = client.open(SPREADSHEET_NAME)
+        ws_master = sheet.worksheet("Master Sheet")
+        
+        # Find row by JS ID
+        cell = ws_master.find(str(js_id))
+        if cell:
+            row_idx = cell.row
+            # Column 16: Current Status, Column 17: Total Visits, Column 18: Final Installer, Column 19: Close Date
+            ws_master.update_cell(row_idx, 17, visit_count)
+            
+            if status == "Completed":
+                ws_master.update_cell(row_idx, 16, "Completed")
+                ws_master.update_cell(row_idx, 18, installer_name)
+                ws_master.update_cell(row_idx, 19, close_time)
+            elif status == "In Progress / Pending":
+                ws_master.update_cell(row_idx, 16, "In Progress")
+        return True
+    except Exception as e:
+        st.warning(f"Master Sheet Auto-Update Warning: {e}")
+        return False
+
 # Load Data
 df_master, df_visit, connection_status = fetch_data()
 
@@ -239,7 +262,6 @@ nav_option = st.sidebar.radio("Navigation Options:", available_options)
 
 st.sidebar.markdown("---")
 
-# ALWAYS VISIBLE Date / Month Filter (If allowed for role)
 if current_role in ["Admin", "HOD"]:
     st.sidebar.subheader("📅 Data Filters")
     filter_mode = st.sidebar.radio("Filter By:", ["All Data", "By Month & Year", "Date Range"])
@@ -429,7 +451,7 @@ elif nav_option == "👔 Manager - Create / Edit Job":
                         ws_master.update_cell(row_idx, 18, updated_installer)
                         
                         if updated_status == "Completed":
-                            ws_master.update_cell(row_idx, 19, datetime.now().strftime("%Y-%m-%d"))
+                            ws_master.update_cell(row_idx, 19, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                             
                         st.success(f"✅ Job Sheet **{selected_edit_js}** updated successfully!")
                         st.cache_data.clear()
@@ -564,7 +586,16 @@ elif nav_option == "🔧 Technician - Job Visit":
                     }
                     
                     if save_visit_entry(visit_log):
-                        st.success(f"✅ Visit #{visit_no} Logged Successfully for **{selected_js_id}**! Total Duration: {duration_display}")
+                        # AUTO-UPDATE MASTER SHEET DETAILS
+                        update_master_on_visit(
+                            js_id=selected_js_id, 
+                            visit_count=visit_no, 
+                            status=status, 
+                            installer_name=installer_name, 
+                            close_time=visit_time_str
+                        )
+                        
+                        st.success(f"✅ Visit #{visit_no} Logged Successfully for **{selected_js_id}**! Master Sheet Updated.")
                         if photo_url:
                             st.success(f"📸 Photo Saved to Google Drive! Link: {photo_url}")
                         st.cache_data.clear()
