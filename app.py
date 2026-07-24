@@ -31,6 +31,13 @@ st.markdown("""
         color: #6B7280;
         margin-bottom: 20px;
     }
+    .client-card {
+        background-color: #F3F4F6;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 5px solid #1E3A8A;
+        margin-bottom: 20px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -111,12 +118,13 @@ def upload_photo_to_drive(uploaded_file, filename):
         
         media = MediaIoBaseUpload(io.BytesIO(uploaded_file.getvalue()), mimetype=uploaded_file.type)
         
-        # Added supportsAllDrives=True to fix Google Drive Service Account Quota issue
+        # supportsAllDrives & ignoreDefaultVisibility set to bypass storageQuotaExceeded
         file = drive_service.files().create(
             body=file_metadata, 
             media_body=media, 
             fields='id, webViewLink',
-            supportsAllDrives=True
+            supportsAllDrives=True,
+            ignoreDefaultVisibility=True
         ).execute()
         
         # Make photo viewable via link
@@ -411,7 +419,6 @@ elif nav_option == "👔 Manager - Create / Edit Job":
                         
                         row_idx = df_master.index[df_master['JS ID'].astype(str) == selected_edit_js][0] + 2
                         
-                        # Column positions: Current Status (Col 16), Office Remark (Col 15), Final Installer (Col 18)
                         ws_master.update_cell(row_idx, 15, updated_office_remark)
                         ws_master.update_cell(row_idx, 16, updated_status)
                         ws_master.update_cell(row_idx, 18, updated_installer)
@@ -428,16 +435,53 @@ elif nav_option == "👔 Manager - Create / Edit Job":
 elif nav_option == "🔧 Technician - Job Visit":
     st.subheader("🔧 Technician Portal: Log Site Visit")
     
-    if df_master.empty:
+    if df_master.empty or 'JS ID' not in df_master.columns:
         st.warning("No Job IDs available. Please create a Job from Manager Portal first.")
     else:
-        pending_js_ids = df_master['JS ID'].tolist()
+        pending_js_ids = df_master['JS ID'].astype(str).tolist()
         selected_js_id = st.selectbox("Select JS ID for Visit:", pending_js_ids)
         
-        job_info = df_master[df_master['JS ID'] == selected_js_id].iloc[0]
-        st.info(f"📍 **Client:** {job_info['Client Name']} | **Product:** {job_info['Product']} | **Created On:** {job_info['Date']}")
+        job_info = df_master[df_master['JS ID'].astype(str) == selected_js_id].iloc[0]
         
+        # -------------------------------------------------------------
+        # 📌 CUSTOMER DETAILS CARD (RESTORED)
+        # -------------------------------------------------------------
+        st.markdown(f"""
+            <div class="client-card">
+                <h4>📋 Job Sheet Details: {selected_js_id}</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                    <div><b>👤 Client Name:</b> {job_info.get('Client Name', 'N/A')}</div>
+                    <div><b>📞 Contact:</b> {job_info.get('Contact Number', 'N/A')}</div>
+                    <div><b>📍 Location:</b> {job_info.get('Location', 'N/A')}</div>
+                    <div><b>⚙️ Product:</b> {job_info.get('Product', 'N/A')}</div>
+                    <div><b>🏷️ Category:</b> {job_info.get('Job Category', 'N/A')}</div>
+                    <div><b>🛠️ Service Scope:</b> {job_info.get('Service Scope', 'N/A')}</div>
+                </div>
+                <div style="margin-top: 10px;"><b>🏠 Full Address:</b> {job_info.get('Address', 'N/A')}</div>
+                <div style="margin-top: 5px; color: #D97706;"><b>📝 Office Remarks:</b> {job_info.get('Office Remark', 'None')}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # -------------------------------------------------------------
+        # 📜 PREVIOUS VISIT HISTORY (RESTORED)
+        # -------------------------------------------------------------
+        if not df_visit.empty and 'JS ID' in df_visit.columns:
+            js_previous_visits = df_visit[df_visit['JS ID'].astype(str) == selected_js_id]
+            if not js_previous_visits.empty:
+                with st.expander(f"📜 View Previous Visit Logs for {selected_js_id} ({len(js_previous_visits)} Visits Done)", expanded=False):
+                    st.dataframe(
+                        js_previous_visits[['Visit No', 'Visit Date', 'Installer Name', 'Status', 'Reason', 'Remarks', 'Photo URL']], 
+                        column_config={
+                            "Photo URL": st.column_config.LinkColumn("Photo Link")
+                        },
+                        use_container_width=True
+                    )
+        
+        # -------------------------------------------------------------
+        # 📝 TECHNICIAN VISIT ENTRY FORM
+        # -------------------------------------------------------------
         with st.form("technician_visit_form"):
+            st.markdown("##### 📝 Log New Visit Entry")
             c1, c2 = st.columns(2)
             installer_name = c1.text_input("Technician / Installer Name *")
             status = c2.selectbox("Visit Outcome Status", ["In Progress / Pending", "Completed", "Partially Done", "Cancelled"])
@@ -486,7 +530,7 @@ elif nav_option == "🔧 Technician - Job Visit":
                 if not installer_name:
                     st.error("Please fill Technician Name.")
                 else:
-                    existing_visits = len(df_visit[df_visit['JS ID'] == selected_js_id]) if not df_visit.empty else 0
+                    existing_visits = len(df_visit[df_visit['JS ID'].astype(str) == selected_js_id]) if not df_visit.empty else 0
                     visit_no = existing_visits + 1
                     
                     visit_timestamp = datetime.now()
