@@ -111,27 +111,32 @@ def upload_photo_to_drive(uploaded_file, filename):
         drive_service = build('drive', 'v3', credentials=creds)
         folder_id = st.secrets.get("FOLDER_ID", "")
         
+        if not folder_id:
+            st.error("❌ FOLDER_ID is missing in secrets.toml!")
+            return ""
+
         file_metadata = {
             'name': filename,
-            'parents': [folder_id] if folder_id else []
+            'parents': [folder_id]
         }
         
         media = MediaIoBaseUpload(io.BytesIO(uploaded_file.getvalue()), mimetype=uploaded_file.type)
         
-        # supportsAllDrives & ignoreDefaultVisibility set to bypass storageQuotaExceeded
+        # supportsAllDrives=True & supportsTeamDrives=True for Shared Drive support
         file = drive_service.files().create(
             body=file_metadata, 
             media_body=media, 
             fields='id, webViewLink',
             supportsAllDrives=True,
-            ignoreDefaultVisibility=True
+            supportsTeamDrives=True
         ).execute()
         
-        # Make photo viewable via link
+        # Make photo viewable via public link
         drive_service.permissions().create(
             fileId=file.get('id'),
             body={'role': 'reader', 'type': 'anyone'},
-            supportsAllDrives=True
+            supportsAllDrives=True,
+            supportsTeamDrives=True
         ).execute()
         
         return file.get('webViewLink')
@@ -443,9 +448,7 @@ elif nav_option == "🔧 Technician - Job Visit":
         
         job_info = df_master[df_master['JS ID'].astype(str) == selected_js_id].iloc[0]
         
-        # -------------------------------------------------------------
-        # 📌 CUSTOMER DETAILS CARD (RESTORED)
-        # -------------------------------------------------------------
+        # Customer Details Card
         st.markdown(f"""
             <div class="client-card">
                 <h4>📋 Job Sheet Details: {selected_js_id}</h4>
@@ -462,9 +465,7 @@ elif nav_option == "🔧 Technician - Job Visit":
             </div>
         """, unsafe_allow_html=True)
         
-        # -------------------------------------------------------------
-        # 📜 PREVIOUS VISIT HISTORY (RESTORED)
-        # -------------------------------------------------------------
+        # Previous Visit History
         if not df_visit.empty and 'JS ID' in df_visit.columns:
             js_previous_visits = df_visit[df_visit['JS ID'].astype(str) == selected_js_id]
             if not js_previous_visits.empty:
@@ -477,9 +478,7 @@ elif nav_option == "🔧 Technician - Job Visit":
                         use_container_width=True
                     )
         
-        # -------------------------------------------------------------
-        # 📝 TECHNICIAN VISIT ENTRY FORM
-        # -------------------------------------------------------------
+        # Technician Form
         with st.form("technician_visit_form"):
             st.markdown("##### 📝 Log New Visit Entry")
             c1, c2 = st.columns(2)
@@ -518,7 +517,6 @@ elif nav_option == "🔧 Technician - Job Visit":
             doc_c1, doc_c2 = st.columns(2)
             doc_no = doc_c1.text_input("Job Sheet Slip / Challan / Doc No. (Optional)")
             
-            # CAMERA / GALLERY FILE UPLOADER
             uploaded_photo = doc_c2.file_uploader(
                 "Upload Site Photo / Slip (Camera or Gallery)", 
                 type=["png", "jpg", "jpeg"]
@@ -536,14 +534,12 @@ elif nav_option == "🔧 Technician - Job Visit":
                     visit_timestamp = datetime.now()
                     visit_time_str = visit_timestamp.strftime("%Y-%m-%d %H:%M:%S")
                     
-                    # Upload Photo to Google Drive if selected
                     photo_url = ""
                     if uploaded_photo is not None:
                         photo_filename = f"{selected_js_id}_Visit{visit_no}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
                         st.info("📤 Uploading photo to Google Drive...")
                         photo_url = upload_photo_to_drive(uploaded_photo, photo_filename)
                     
-                    # Time Calculation
                     js_created_str = str(job_info['Date'])
                     try:
                         js_created_dt = pd.to_datetime(js_created_str)
