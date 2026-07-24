@@ -32,14 +32,14 @@ try:
     SHEET_NAME = st.secrets.get("SHEET_NAME", "Sidharth Shutter CRM Master")
     sheet = gc.open(SHEET_NAME)
     
-    # Worksheets
-    master_ws = sheet.worksheet("Master Jobs")
+    # Corrected Worksheet Names from Google Sheet Tabs
+    master_ws = sheet.worksheet("Master Sheet")
     visit_ws = sheet.worksheet("Visit History")
 except Exception as e:
     st.error(f"Google Sheet Connection Error: {e}")
     st.stop()
 
-# --- DRIVE UPLOAD FUNCTION (FIXED FOR QUOTA ERROR) ---
+# --- DRIVE UPLOAD FUNCTION ---
 def upload_photo_to_drive(uploaded_file, filename):
     try:
         drive_service = build('drive', 'v3', credentials=creds)
@@ -86,21 +86,25 @@ def get_visit_dataframe():
 
 def generate_next_js_id():
     df = get_master_dataframe()
+    today_prefix = f"JS-{datetime.date.today().strftime('%Y%m')}-"
+    
     if df.empty or 'JS ID' not in df.columns:
-        return "JS-101"
+        return f"{today_prefix}001"
     
     existing_ids = df['JS ID'].astype(str).tolist()
-    numeric_ids = []
-    for item in existing_ids:
-        if item.startswith("JS-"):
-            try:
-                numeric_ids.append(int(item.replace("JS-", "")))
-            except ValueError:
-                pass
+    matching_ids = [item for item in existing_ids if item.startswith("JS-")]
     
-    if not numeric_ids:
-        return "JS-101"
-    return f"JS-{max(numeric_ids) + 1}"
+    if not matching_ids:
+        return f"{today_prefix}001"
+    
+    # Get last number
+    try:
+        last_id = matching_ids[-1]
+        last_num = int(last_id.split("-")[-1])
+        new_num = last_num + 1
+        return f"{today_prefix}{new_num:03d}"
+    except Exception:
+        return f"{today_prefix}{len(matching_ids) + 1:03d}"
 
 # --- NAVIGATION SIDEBAR ---
 st.sidebar.title("📌 Navigation")
@@ -122,13 +126,18 @@ if page == "Executive Dashboard":
     
     if not df_master.empty:
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Total Complaint/Job Entries", len(df_master))
-        col2.metric("Pending Jobs", len(df_master[df_master['Status'] != 'Completed']))
-        col3.metric("Completed Jobs", len(df_master[df_master['Status'] == 'Completed']))
+        col1.metric("Total Jobs", len(df_master))
+        
+        status_col = 'Status' if 'Status' in df_master.columns else df_master.columns[0]
+        pending_count = len(df_master[df_master[status_col] != 'Completed'])
+        completed_count = len(df_master[df_master[status_col] == 'Completed'])
+        
+        col2.metric("Pending Jobs", pending_count)
+        col3.metric("Completed Jobs", completed_count)
         col4.metric("Total Visit Logs", len(df_visit) if not df_visit.empty else 0)
         
         st.divider()
-        st.subheader("📋 Recent Jobs Overview")
+        st.subheader("📋 Master Sheet Overview")
         st.dataframe(df_master, use_container_width=True)
     else:
         st.info("No data available in Master Sheet yet.")
@@ -137,7 +146,7 @@ if page == "Executive Dashboard":
 # PAGE 2: MANAGER - CREATE / EDIT JOB
 # ==========================================
 elif page == "Manager - Create / Edit Job":
-    st.title("👨‍💼 Manager Portal: Create & Edit Complaint/Job")
+    st.title("👨‍💼 Manager Portal: Create & Edit Job")
     
     mode = st.radio("Select Action:", ["➕ Create New Job / Complaint", "✏️ Edit Existing Job Details"], horizontal=True)
     
@@ -157,8 +166,8 @@ elif page == "Manager - Create / Edit Job":
                 contact_no = st.text_input("Contact Number*")
                 location = st.text_input("Site Location / Address*")
             with col2:
-                complaint_type = st.selectbox("Complaint / Job Type", ["Shutter Service", "Automation Issue", "New Installation", "General Repair", "Other", "Client"])
-                assigned_tech = st.text_input("Assign Technician Name*")
+                complaint_type = st.selectbox("Job / Complaint Type", ["Shutter Service", "Automation Issue", "New Installation", "General Repair", "Other"])
+                assigned_tech = st.text_input("Assign Installer / Technician Name*")
                 priority = st.selectbox("Priority Level", ["Normal", "High", "Urgent"])
             
             remarks = st.text_area("Initial Remarks / Issue Description")
@@ -169,6 +178,7 @@ elif page == "Manager - Create / Edit Job":
                     st.error("Please fill in all mandatory fields (*)")
                 else:
                     today_str = datetime.date.today().strftime("%Y-%m-%d")
+                    # Append row to Master Sheet
                     new_row = [
                         new_js_id, today_str, client_name, contact_no, 
                         location, complaint_type, assigned_tech, priority, 
@@ -183,41 +193,32 @@ elif page == "Manager - Create / Edit Job":
     elif mode == "✏️ Edit Existing Job Details":
         st.subheader("🔄 Update / Edit Existing Job Status")
         
-        if df_master.empty:
-            st.warning("No jobs found in the system to edit.")
+        if df_master.empty or 'JS ID' not in df_master.columns:
+            st.warning("No jobs found in Master Sheet to edit.")
         else:
-            js_list = df_master['JS ID'].astype(str).tolist()
+            js_list = df_master['JS ID'].astype(str).unique().tolist()
             selected_js = st.selectbox("Select JS ID to Edit:", js_list)
             
             job_data = df_master[df_master['JS ID'].astype(str) == selected_js].iloc[0]
-            
-            # Get Row Index in Sheet (Sheet 1-indexed, header is row 1)
             row_idx = df_master.index[df_master['JS ID'].astype(str) == selected_js][0] + 2
-            
-            st.write(f"**Client:** {job_data.get('Client Name', '')} | **Location:** {job_data.get('Location', '')}")
             
             with st.form("edit_job_form"):
                 col1, col2 = st.columns(2)
                 with col1:
-                    status = st.selectbox("Update Job Status", ["Assigned", "In Progress", "On Hold", "Completed", "Cancelled"], 
-                                          index=["Assigned", "In Progress", "On Hold", "Completed", "Cancelled"].index(job_data.get('Status', 'Assigned')) if job_data.get('Status') in ["Assigned", "In Progress", "On Hold", "Completed", "Cancelled"] else 0)
-                    assigned_tech = st.text_input("Assigned Technician", value=str(job_data.get('Technician Name', '')))
+                    status = st.selectbox("Update Job Status", ["In Progress / Pending", "Completed", "On Hold", "Cancelled"])
+                    assigned_tech = st.text_input("Installer / Technician Name", value=str(job_data.get('Installer Name', job_data.get('Technician Name', ''))))
                 with col2:
-                    priority = st.selectbox("Priority Level", ["Normal", "High", "Urgent"],
-                                          index=["Normal", "High", "Urgent"].index(job_data.get('Priority', 'Normal')) if job_data.get('Priority') in ["Normal", "High", "Urgent"] else 0)
-                    contact_no = st.text_input("Contact Number", value=str(job_data.get('Contact No', '')))
+                    doc_no = st.text_input("Doc No", value=str(job_data.get('Doc No', '')))
+                    reason = st.text_input("Reason / Remarks", value=str(job_data.get('Reason', '')))
                 
-                remarks = st.text_area("Remarks / Updates", value=str(job_data.get('Remarks', '')))
+                remarks = st.text_area("Additional Remarks", value=str(job_data.get('Remarks', '')))
                 
                 update_btn = st.form_submit_button("🔄 Update Job Details")
                 
                 if update_btn:
-                    # Header Columns: JS ID, Date, Client Name, Contact No, Location, Complaint Type, Technician Name, Priority, Status, Remarks
-                    master_ws.update_cell(row_idx, 4, contact_no)
-                    master_ws.update_cell(row_idx, 7, assigned_tech)
-                    master_ws.update_cell(row_idx, 8, priority)
-                    master_ws.update_cell(row_idx, 9, status)
-                    master_ws.update_cell(row_idx, 10, remarks)
+                    # Updating status & remarks
+                    master_ws.update_cell(row_idx, 5, status)  # Column E (Status)
+                    master_ws.update_cell(row_idx, 10, remarks) # Column J (Remarks)
                     
                     st.success(f"✅ Job `{selected_js}` successfully updated!")
 
@@ -229,52 +230,61 @@ elif page == "Technician - Job Visit":
     
     df_master = get_master_dataframe()
     
-    if df_master.empty:
-        st.warning("No jobs currently available.")
+    if df_master.empty or 'JS ID' not in df_master.columns:
+        st.warning("No active jobs found.")
     else:
-        active_jobs = df_master[df_master['Status'] != 'Completed']
-        js_options = active_jobs['JS ID'].astype(str).tolist() if not active_jobs.empty else df_master['JS ID'].astype(str).tolist()
-        
+        js_options = df_master['JS ID'].astype(str).unique().tolist()
         selected_js = st.selectbox("Select JS ID for Visit:", js_options)
         
-        job_info = df_master[df_master['JS ID'].astype(str) == selected_js].iloc[0]
+        # Auto calculate Visit No for this JS ID
+        df_visit = get_visit_dataframe()
+        visit_no = 1
+        if not df_visit.empty and 'JS ID' in df_visit.columns:
+            existing_visits = df_visit[df_visit['JS ID'].astype(str) == selected_js]
+            visit_no = len(existing_visits) + 1
         
-        st.info(f"👤 **Client:** {job_info.get('Client Name', '')} | 📞 **Phone:** {job_info.get('Contact No', '')} | 📍 **Location:** {job_info.get('Location', '')}")
+        st.info(f"📌 Logging **Visit No: {visit_no}** for **JS ID: {selected_js}**")
         
         with st.form("technician_visit_form", clear_on_submit=True):
-            tech_name = st.text_input("Technician Name*", value=str(job_info.get('Technician Name', '')))
-            visit_work_done = st.text_area("Work Done / Site Observations*")
-            visit_status = st.selectbox("Current Visit Status", ["In Progress", "Completed", "Pending Parts/Follow-up"])
+            col1, col2 = st.columns(2)
+            with col1:
+                installer_name = st.text_input("Installer / Technician Name*")
+                status = st.selectbox("Visit Status*", ["Completed", "In Progress / Pending", "On Hold"])
+                reason = st.text_input("Reason / Service Type*", value="Regular Maintenance")
+            with col2:
+                payment_mode = st.selectbox("Payment Mode", ["Cash", "Online / UPI", "Credit", "N/A"])
+                credit_person = st.text_input("Credit Person (If Credit)")
+                doc_no = st.text_input("Doc No / Slip No")
             
-            uploaded_photo = st.file_uploader("📷 Upload Site Photo / Slip (Manual Choice)", type=['jpg', 'jpeg', 'png'])
+            time_spent = st.text_input("Time Spent", value="300 Sec (0.08 Hrs)")
+            remarks = st.text_area("Visit Remarks / Service Details")
+            uploaded_photo = st.file_uploader("📷 Upload Site Photo / Slip", type=['jpg', 'jpeg', 'png'])
             
             submit_visit = st.form_submit_button("💾 Submit Visit Log")
             
             if submit_visit:
-                if not tech_name or not visit_work_done:
+                if not installer_name or not reason:
                     st.error("Please fill required fields (*)")
                 else:
                     photo_url = ""
                     if uploaded_photo is not None:
                         st.info("Uploading photo to Google Drive...")
                         timestamp_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        filename = f"{selected_js}_{timestamp_str}.png"
+                        filename = f"{selected_js}_V{visit_no}_{timestamp_str}.png"
                         photo_url = upload_photo_to_drive(uploaded_photo, filename)
                     
-                    visit_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    visit_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                     
-                    # Visit History Sheet Columns: Visit Date, JS ID, Technician Name, Work Done, Status, Photo Link
+                    # Columns matching Visit History tab:
+                    # JS ID, Visit No, Visit Date, Installer Name, Status, Reason, Time Spent (Seconds), Payment Mode, Credit Person, Remarks, Doc No, Photo URL
                     visit_row = [
-                        visit_date, selected_js, tech_name, visit_work_done, visit_status, photo_url
+                        selected_js, visit_no, visit_date, installer_name, status, 
+                        reason, time_spent, payment_mode, credit_person, remarks, doc_no, photo_url
                     ]
+                    
                     visit_ws.append_row(visit_row)
                     
-                    # Update status in Master sheet if completed
-                    if visit_status == "Completed":
-                        row_idx = df_master.index[df_master['JS ID'].astype(str) == selected_js][0] + 2
-                        master_ws.update_cell(row_idx, 9, "Completed")
-                    
-                    st.success(f"✅ Visit log for `{selected_js}` recorded successfully!")
+                    st.success(f"✅ Visit No {visit_no} for `{selected_js}` recorded successfully!")
 
 # ==========================================
 # PAGE 4: VIEW ALL JOBS
@@ -291,13 +301,13 @@ elif page == "View All Jobs (Master Sheet)":
 # PAGE 5: VIEW VISIT HISTORY DATABASE
 # ==========================================
 elif page == "View Visit History Database":
-    st.title("📜 Visit History & Photos Database")
+    st.title("📜 Visit History Database")
     df_visit = get_visit_dataframe()
     if not df_visit.empty:
         st.dataframe(
             df_visit,
             column_config={
-                "Photo Link": st.column_config.LinkColumn("Photo Link", display_text="🖼️ View Photo")
+                "Photo URL": st.column_config.LinkColumn("Photo URL", display_text="🖼️ View Photo")
             },
             use_container_width=True
         )
