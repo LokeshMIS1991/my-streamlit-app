@@ -42,6 +42,42 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
+# CONSTANTS & LISTS
+# ==========================================
+ALL_STATES = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", 
+    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", 
+    "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
+    "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", 
+    "Delhi NCR", "Chandigarh", "Jammu & Kashmir", "Ladakh", "Other"
+]
+
+ALL_PRODUCTS = [
+    "Rolling Shutter", 
+    "Motorized Shutter", 
+    "Sectional Door", 
+    "Automation Kit", 
+    "High Speed Door", 
+    "Fire Rated Shutter", 
+    "Boom Barrier", 
+    "Automatic Sliding Gate", 
+    "Automatic Swing Gate", 
+    "Dock Leveler", 
+    "Other"
+]
+
+ALL_SERVICE_SCOPES = [
+    "Dealer Complaint", 
+    "Client Complaint", 
+    "General Complaint", 
+    "Under Warranty", 
+    "Chargeable Service", 
+    "FOC Visit", 
+    "Trial Visit"
+]
+
+# ==========================================
 # AUTHENTICATION & LOGIN SYSTEM
 # ==========================================
 USER_CREDENTIALS = {
@@ -194,11 +230,9 @@ def update_master_on_visit(js_id, visit_count, status, installer_name, close_tim
         sheet = client.open(SPREADSHEET_NAME)
         ws_master = sheet.worksheet("Master Sheet")
         
-        # Find row by JS ID
         cell = ws_master.find(str(js_id))
         if cell:
             row_idx = cell.row
-            # Column 16: Current Status, Column 17: Total Visits, Column 18: Final Installer, Column 19: Close Date
             ws_master.update_cell(row_idx, 17, visit_count)
             
             if status == "Completed":
@@ -215,7 +249,6 @@ def update_master_on_visit(js_id, visit_count, status, installer_name, close_tim
 # Load Data
 df_master, df_visit, connection_status = fetch_data()
 
-# Parse Datetime for Filter Helper
 if not df_master.empty and 'Date' in df_master.columns:
     df_master['Date_Parsed'] = pd.to_datetime(df_master['Date'], errors='coerce')
 
@@ -368,12 +401,12 @@ elif nav_option == "👔 Manager - Create / Edit Job":
             address = st.text_area("Full Address")
             
             c5, c6, c7 = st.columns(3)
-            state = c5.selectbox("State", ["Delhi", "Haryana", "UP", "Punjab", "Rajasthan", "Other"])
-            product = c6.selectbox("Product", ["Rolling Shutter", "Motorized Shutter", "Sectional Door", "Automation Kit", "Other"])
+            state = c5.selectbox("State", ALL_STATES)
+            product = c6.selectbox("Product", ALL_PRODUCTS)
             job_category = c7.selectbox("Job Category", ["New Installation", "Complaint / Repair", "AMC", "Inspection"])
             
             c8, c9, c10 = st.columns(3)
-            service_scope = c8.selectbox("Service Scope", ["Under Warranty", "Chargeable Service", "FOC Visit", "Trial Visit"])
+            service_scope = c8.selectbox("Service Scope", ALL_SERVICE_SCOPES)
             qty = c9.number_input("Quantity", min_value=1, value=1)
             warranty = c10.selectbox("Warranty Status", ["In Warranty", "Out of Warranty", "Not Applicable"])
             
@@ -477,7 +510,7 @@ elif nav_option == "🔧 Technician - Job Visit":
                 <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                     <div><b>👤 Client Name:</b> {job_info.get('Client Name', 'N/A')}</div>
                     <div><b>📞 Contact:</b> {job_info.get('Contact Number', 'N/A')}</div>
-                    <div><b>📍 Location:</b> {job_info.get('Location', 'N/A')}</div>
+                    <div><b>📍 Location:</b> {job_info.get('Location', 'N/A')} ({job_info.get('State', 'N/A')})</div>
                     <div><b>⚙️ Product:</b> {job_info.get('Product', 'N/A')}</div>
                     <div><b>🏷️ Category:</b> {job_info.get('Job Category', 'N/A')}</div>
                     <div><b>🛠️ Service Scope:</b> {job_info.get('Service Scope', 'N/A')}</div>
@@ -500,105 +533,110 @@ elif nav_option == "🔧 Technician - Job Visit":
                         use_container_width=True
                     )
         
-        # Technician Form
-        with st.form("technician_visit_form"):
-            st.markdown("##### 📝 Log New Visit Entry")
-            c1, c2 = st.columns(2)
-            installer_name = c1.text_input("Technician / Installer Name *")
-            status = c2.selectbox("Visit Outcome Status", ["In Progress / Pending", "Completed", "Partially Done", "Cancelled"])
+        # Outside Form: Payment Mode to handle dynamic conditional UI
+        st.markdown("##### 📝 Log New Visit Entry")
+        c1, c2 = st.columns(2)
+        installer_name = c1.text_input("Technician / Installer Name *")
+        status = c2.selectbox("Visit Outcome Status", ["In Progress / Pending", "Completed", "Partially Done", "Cancelled"])
+        
+        reasons_list = [
+            "Site Not Ready",
+            "Motor / Automation Fault",
+            "Alignment & Mechanical Issue",
+            "Power Supply / Electrical Issue",
+            "Remote / Sensor Programming",
+            "Material Missing / Pending from Client",
+            "Payment Issue / On Hold",
+            "Regular Maintenance / Service Complete",
+            "Installation Complete",
+            "Other"
+        ]
+        selected_reason = st.selectbox("Reason / Work Done Category *", reasons_list)
+        
+        other_reason_text = ""
+        if selected_reason == "Other":
+            other_reason_text = st.text_input("Specify Other Reason *")
             
-            reasons_list = [
-                "Site Not Ready",
-                "Motor / Automation Fault",
-                "Alignment & Mechanical Issue",
-                "Power Supply / Electrical Issue",
-                "Remote / Sensor Programming",
-                "Material Missing / Pending from Client",
-                "Payment Issue / On Hold",
-                "Regular Maintenance / Service Complete",
-                "Installation Complete",
-                "Other"
-            ]
-            selected_reason = st.selectbox("Reason / Work Done Category *", reasons_list)
-            
-            other_reason_text = ""
-            if selected_reason == "Other":
-                other_reason_text = st.text_input("Specify Other Reason *")
+        final_reason = other_reason_text if selected_reason == "Other" else selected_reason
+        
+        c5, c6 = st.columns(2)
+        payment_mode = c5.selectbox("Payment Mode", ["N/A", "None / Included", "Cash", "UPI / Digital", "Credit / Due"])
+        
+        # Conditional Credit Person Display
+        credit_person = "N/A"
+        if payment_mode == "Credit / Due":
+            credit_person = c6.text_input("Person Name (Care Of / Credit) *")
+        else:
+            c6.text_input("Person Name (Care Of / Credit)", value="N/A", disabled=True)
+        
+        remarks = st.text_area("Technician Remarks")
+        
+        st.markdown("---")
+        st.caption("📷 **Optional Attachments / Photo Upload (Camera / Gallery):**")
+        
+        doc_c1, doc_c2 = st.columns(2)
+        doc_no = doc_c1.text_input("Job Sheet Slip / Challan / Doc No. (Optional)")
+        
+        uploaded_photo = doc_c2.file_uploader(
+            "Upload Site Photo / Slip (Camera or Gallery)", 
+            type=["png", "jpg", "jpeg"]
+        )
+        
+        if st.button("💾 Submit Visit Log", use_container_width=True):
+            if not installer_name:
+                st.error("Please fill Technician Name.")
+            elif payment_mode == "Credit / Due" and (not credit_person or credit_person == "N/A"):
+                st.error("Please mention the Person Name for Credit payment.")
+            else:
+                existing_visits = len(df_visit[df_visit['JS ID'].astype(str) == selected_js_id]) if not df_visit.empty else 0
+                visit_no = existing_visits + 1
                 
-            final_reason = other_reason_text if selected_reason == "Other" else selected_reason
-            
-            c5, c6 = st.columns(2)
-            payment_mode = c5.selectbox("Payment Mode", ["N/A", "None / Included", "Cash", "UPI / Digital", "Credit / Due"])
-            credit_person = c6.text_input("If Credit, Person Name")
-            
-            remarks = st.text_area("Technician Remarks")
-            
-            st.markdown("---")
-            st.caption("📷 **Optional Attachments / Photo Upload (Camera / Gallery):**")
-            
-            doc_c1, doc_c2 = st.columns(2)
-            doc_no = doc_c1.text_input("Job Sheet Slip / Challan / Doc No. (Optional)")
-            
-            uploaded_photo = doc_c2.file_uploader(
-                "Upload Site Photo / Slip (Camera or Gallery)", 
-                type=["png", "jpg", "jpeg"]
-            )
-            
-            visit_submit = st.form_submit_button("💾 Submit Visit Log")
-            
-            if visit_submit:
-                if not installer_name:
-                    st.error("Please fill Technician Name.")
-                else:
-                    existing_visits = len(df_visit[df_visit['JS ID'].astype(str) == selected_js_id]) if not df_visit.empty else 0
-                    visit_no = existing_visits + 1
-                    
-                    visit_timestamp = datetime.now()
-                    visit_time_str = visit_timestamp.strftime("%Y-%m-%d %H:%M:%S")
-                    
-                    photo_url = ""
-                    if uploaded_photo is not None:
-                        photo_filename = f"{selected_js_id}_Visit{visit_no}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
-                        st.info("📤 Uploading photo to Google Drive...")
-                        photo_url = upload_photo_to_drive(uploaded_photo, photo_filename)
-                    
-                    js_created_str = str(job_info['Date'])
-                    try:
-                        js_created_dt = pd.to_datetime(js_created_str)
-                        time_diff_seconds = int((visit_timestamp - js_created_dt).total_seconds())
-                        duration_display = f"{time_diff_seconds} Sec ({round(time_diff_seconds/3600, 2)} Hrs)"
-                    except:
-                        duration_display = "N/A"
+                visit_timestamp = datetime.now()
+                visit_time_str = visit_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                
+                photo_url = ""
+                if uploaded_photo is not None:
+                    photo_filename = f"{selected_js_id}_Visit{visit_no}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+                    st.info("📤 Uploading photo to Google Drive...")
+                    photo_url = upload_photo_to_drive(uploaded_photo, photo_filename)
+                
+                js_created_str = str(job_info['Date'])
+                try:
+                    js_created_dt = pd.to_datetime(js_created_str)
+                    time_diff_seconds = int((visit_timestamp - js_created_dt).total_seconds())
+                    duration_display = f"{time_diff_seconds} Sec ({round(time_diff_seconds/3600, 2)} Hrs)"
+                except:
+                    duration_display = "N/A"
 
-                    visit_log = {
-                        "JS ID": selected_js_id,
-                        "Visit No": visit_no,
-                        "Visit Date": visit_time_str,
-                        "Installer Name": installer_name,
-                        "Status": status,
-                        "Reason": final_reason,
-                        "Time Spent (Seconds)": duration_display,
-                        "Payment Mode": payment_mode,
-                        "Credit Person": credit_person,
-                        "Remarks": remarks,
-                        "Doc No": doc_no,
-                        "Photo URL": photo_url
-                    }
+                visit_log = {
+                    "JS ID": selected_js_id,
+                    "Visit No": visit_no,
+                    "Visit Date": visit_time_str,
+                    "Installer Name": installer_name,
+                    "Status": status,
+                    "Reason": final_reason,
+                    "Time Spent (Seconds)": duration_display,
+                    "Payment Mode": payment_mode,
+                    "Credit Person": credit_person,
+                    "Remarks": remarks,
+                    "Doc No": doc_no,
+                    "Photo URL": photo_url
+                }
+                
+                if save_visit_entry(visit_log):
+                    # AUTO-UPDATE MASTER SHEET DETAILS
+                    update_master_on_visit(
+                        js_id=selected_js_id, 
+                        visit_count=visit_no, 
+                        status=status, 
+                        installer_name=installer_name, 
+                        close_time=visit_time_str
+                    )
                     
-                    if save_visit_entry(visit_log):
-                        # AUTO-UPDATE MASTER SHEET DETAILS
-                        update_master_on_visit(
-                            js_id=selected_js_id, 
-                            visit_count=visit_no, 
-                            status=status, 
-                            installer_name=installer_name, 
-                            close_time=visit_time_str
-                        )
-                        
-                        st.success(f"✅ Visit #{visit_no} Logged Successfully for **{selected_js_id}**! Master Sheet Updated.")
-                        if photo_url:
-                            st.success(f"📸 Photo Saved to Google Drive! Link: {photo_url}")
-                        st.cache_data.clear()
+                    st.success(f"✅ Visit #{visit_no} Logged Successfully for **{selected_js_id}**! Master Sheet Updated.")
+                    if photo_url:
+                        st.success(f"📸 Photo Saved to Google Drive! Link: {photo_url}")
+                    st.cache_data.clear()
 
 # 4. VIEW MASTER SHEET
 elif nav_option == "📊 View All Jobs (Master Sheet)":
