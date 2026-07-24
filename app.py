@@ -32,6 +32,45 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
+# AUTHENTICATION & LOGIN SYSTEM
+# ==========================================
+# Default Passwords for Roles
+USER_CREDENTIALS = {
+    "Admin": "admin123",
+    "HOD": "hod123",
+    "Manager": "mgr123",
+    "Technician": "tech123"
+}
+
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+if 'user_role' not in st.session_state:
+    st.session_state['user_role'] = None
+
+def login_screen():
+    st.markdown("<div class='main-header'>Sidharth Shutters & Automations Private Limited</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Operations Portal - Secure Access Login</div>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.subheader("🔐 User Login")
+        role = st.selectbox("Select Your Role:", ["Admin", "HOD", "Manager", "Technician"])
+        password = st.text_input("Enter Password:", type="password")
+        
+        if st.button("🔑 Login", use_container_width=True):
+            if USER_CREDENTIALS.get(role) == password:
+                st.session_state['logged_in'] = True
+                st.session_state['user_role'] = role
+                st.success(f"Welcome {role}! Logging in...")
+                st.rerun()
+            else:
+                st.error("❌ Incorrect Password. Please try again.")
+
+if not st.session_state['logged_in']:
+    login_screen()
+    st.stop()
+
+# ==========================================
 # CONNECTIONS & AUTHENTICATION
 # ==========================================
 SCOPE = [
@@ -114,63 +153,95 @@ if not df_visit.empty and 'Visit Date' in df_visit.columns:
     df_visit['Visit_Date_Parsed'] = pd.to_datetime(df_visit['Visit Date'], errors='coerce')
 
 # ==========================================
-# SIDEBAR NAVIGATION & GLOBAL FILTERS
+# SIDEBAR NAVIGATION & ROLE PERMISSIONS
 # ==========================================
 st.sidebar.image("https://img.icons8.com/color/96/000000/worker-male.png", width=60)
 st.sidebar.title("SIDHARTH")
 st.sidebar.caption("SHUTTER & AUTOMATION")
+
+current_role = st.session_state['user_role']
+st.sidebar.info(f"👤 Logged in as: **{current_role}**")
+
+if st.sidebar.button("🚪 Logout"):
+    st.session_state['logged_in'] = False
+    st.session_state['user_role'] = None
+    st.rerun()
+
 st.sidebar.markdown("---")
 
-nav_option = st.sidebar.radio(
-    "Navigation Options:",
-    [
+# Navigation Options Based on Role
+available_options = []
+
+if current_role == "Admin":
+    available_options = [
         "📈 Executive Dashboard",
         "👔 Manager - Create / Edit Job",
         "🔧 Technician - Job Visit",
         "📊 View All Jobs (Master Sheet)",
         "📜 View Visit History Database"
     ]
-)
+elif current_role == "HOD":
+    available_options = [
+        "📈 Executive Dashboard",
+        "👔 Manager - Create / Edit Job",
+        "🔧 Technician - Job Visit",
+        "📊 View All Jobs (Master Sheet)",
+        "📜 View Visit History Database"
+    ]
+elif current_role == "Manager":
+    available_options = [
+        "👔 Manager - Create / Edit Job",
+        "🔧 Technician - Job Visit"
+    ]
+elif current_role == "Technician":
+    available_options = [
+        "🔧 Technician - Job Visit"
+    ]
+
+nav_option = st.sidebar.radio("Navigation Options:", available_options)
 
 st.sidebar.markdown("---")
 
-# ALWAYS VISIBLE Date / Month Filter
-st.sidebar.subheader("📅 Data Filters")
-filter_mode = st.sidebar.radio("Filter By:", ["All Data", "By Month & Year", "Date Range"])
+# ALWAYS VISIBLE Date / Month Filter (If allowed for role)
+if current_role in ["Admin", "HOD"]:
+    st.sidebar.subheader("📅 Data Filters")
+    filter_mode = st.sidebar.radio("Filter By:", ["All Data", "By Month & Year", "Date Range"])
 
-selected_month = "All"
-selected_year = "All"
-start_date = None
-end_date = None
+    selected_month = "All"
+    selected_year = "All"
+    start_date = None
+    end_date = None
 
-if filter_mode == "By Month & Year":
-    selected_month = st.sidebar.selectbox("Select Month", ["All", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], index=datetime.now().month)
-    selected_year = st.sidebar.selectbox("Select Year", ["All", 2024, 2025, 2026, 2027], index=3) # Default 2026
-
-elif filter_mode == "Date Range":
-    date_range = st.sidebar.date_input("Select Start & End Date", [])
-    if len(date_range) == 2:
-        start_date, end_date = date_range[0], date_range[1]
-
-# Apply Filter Helper Function
-def filter_dataframe(df, date_col):
-    if df.empty or date_col not in df.columns:
-        return df
-    
-    filtered_df = df.copy()
-    
     if filter_mode == "By Month & Year":
-        if selected_month != "All" and 'Month' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['Month'] == selected_month]
-        if selected_year != "All":
-            filtered_df = filtered_df[filtered_df[date_col].astype(str).str.contains(str(selected_year), na=False)]
-            
-    elif filter_mode == "Date Range" and start_date and end_date:
-        parsed_col = date_col + '_Parsed'
-        if parsed_col in filtered_df.columns:
-            filtered_df = filtered_df[(filtered_df[parsed_col].dt.date >= start_date) & (filtered_df[parsed_col].dt.date <= end_date)]
-            
-    return filtered_df
+        selected_month = st.sidebar.selectbox("Select Month", ["All", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], index=datetime.now().month)
+        selected_year = st.sidebar.selectbox("Select Year", ["All", 2024, 2025, 2026, 2027], index=3)
+
+    elif filter_mode == "Date Range":
+        date_range = st.sidebar.date_input("Select Start & End Date", [])
+        if len(date_range) == 2:
+            start_date, end_date = date_range[0], date_range[1]
+
+    def filter_dataframe(df, date_col):
+        if df.empty or date_col not in df.columns:
+            return df
+        
+        filtered_df = df.copy()
+        
+        if filter_mode == "By Month & Year":
+            if selected_month != "All" and 'Month' in filtered_df.columns:
+                filtered_df = filtered_df[filtered_df['Month'] == selected_month]
+            if selected_year != "All":
+                filtered_df = filtered_df[filtered_df[date_col].astype(str).str.contains(str(selected_year), na=False)]
+                
+        elif filter_mode == "Date Range" and start_date and end_date:
+            parsed_col = date_col + '_Parsed'
+            if parsed_col in filtered_df.columns:
+                filtered_df = filtered_df[(filtered_df[parsed_col].dt.date >= start_date) & (filtered_df[parsed_col].dt.date <= end_date)]
+                
+        return filtered_df
+else:
+    def filter_dataframe(df, date_col):
+        return df
 
 st.sidebar.markdown("---")
 if connection_status:
@@ -376,7 +447,7 @@ elif nav_option == "🔧 Technician - Job Visit":
 
 # 4. VIEW MASTER SHEET
 elif nav_option == "📊 View All Jobs (Master Sheet)":
-    st.subheader("📊 Master Job Database")
+    st.subheader("📊 Master Job Database (Read Only)")
     filtered_master = filter_dataframe(df_master, 'Date')
     
     if not filtered_master.empty:
@@ -387,7 +458,7 @@ elif nav_option == "📊 View All Jobs (Master Sheet)":
 
 # 5. VIEW VISIT HISTORY
 elif nav_option == "📜 View Visit History Database":
-    st.subheader("📜 Technician Visit Logs")
+    st.subheader("📜 Technician Visit Logs (Read Only)")
     filtered_visit = filter_dataframe(df_visit, 'Visit Date')
     
     if not filtered_visit.empty:
