@@ -58,8 +58,8 @@ def get_gspread_client():
         return gspread.authorize(creds)
     return None
 
-# Direct Sheet ID to avoid Name Mismatch Errors
-SPREADSHEET_ID = "1UwEGSLm2utcd4asWIRlylF3e11O-Il9OR0j3ptaBSWM"
+# Opening via Exact Sheet Name
+SPREADSHEET_NAME = "Sidharth Shutter CRM Master"
 
 def fetch_data():
     client = get_gspread_client()
@@ -67,7 +67,7 @@ def fetch_data():
         return pd.DataFrame(), pd.DataFrame(), False
 
     try:
-        sheet = client.open_by_key(SPREADSHEET_ID)
+        sheet = client.open(SPREADSHEET_NAME)
         
         ws_master = sheet.worksheet("Master Sheet")
         master_data = ws_master.get_all_records()
@@ -85,7 +85,7 @@ def fetch_data():
 def save_master_job(new_row_dict):
     try:
         client = get_gspread_client()
-        sheet = client.open_by_key(SPREADSHEET_ID)
+        sheet = client.open(SPREADSHEET_NAME)
         ws_master = sheet.worksheet("Master Sheet")
         ws_master.append_row(list(new_row_dict.values()))
         return True
@@ -96,7 +96,7 @@ def save_master_job(new_row_dict):
 def save_visit_entry(visit_dict):
     try:
         client = get_gspread_client()
-        sheet = client.open_by_key(SPREADSHEET_ID)
+        sheet = client.open(SPREADSHEET_NAME)
         ws_visit = sheet.worksheet("Visit History")
         ws_visit.append_row(list(visit_dict.values()))
         return True
