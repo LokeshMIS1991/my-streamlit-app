@@ -58,7 +58,8 @@ def get_gspread_client():
         return gspread.authorize(creds)
     return None
 
-SPREADSHEET_NAME = "Sidharth Shutter CRM Master - Operations Portal Database"
+# Direct Sheet ID to avoid Name Mismatch Errors
+SPREADSHEET_ID = "1UwEGSLm2utcd4asWIRlylF3e11O-Il9OR0j3ptaBSWM"
 
 def fetch_data():
     client = get_gspread_client()
@@ -66,23 +67,25 @@ def fetch_data():
         return pd.DataFrame(), pd.DataFrame(), False
 
     try:
-        sheet = client.open(SPREADSHEET_NAME)
+        sheet = client.open_by_key(SPREADSHEET_ID)
         
         ws_master = sheet.worksheet("Master Sheet")
-        df_master = pd.DataFrame(ws_master.get_all_records())
+        master_data = ws_master.get_all_records()
+        df_master = pd.DataFrame(master_data) if master_data else pd.DataFrame()
         
         ws_visit = sheet.worksheet("Visit History")
-        df_visit = pd.DataFrame(ws_visit.get_all_records())
+        visit_data = ws_visit.get_all_records()
+        df_visit = pd.DataFrame(visit_data) if visit_data else pd.DataFrame()
         
         return df_master, df_visit, True
     except Exception as e:
-        st.sidebar.error(f"Error fetching Sheets: {e}")
+        st.sidebar.error(f"Error fetching Sheets: {str(e)}")
         return pd.DataFrame(), pd.DataFrame(), False
 
 def save_master_job(new_row_dict):
     try:
         client = get_gspread_client()
-        sheet = client.open(SPREADSHEET_NAME)
+        sheet = client.open_by_key(SPREADSHEET_ID)
         ws_master = sheet.worksheet("Master Sheet")
         ws_master.append_row(list(new_row_dict.values()))
         return True
@@ -93,7 +96,7 @@ def save_master_job(new_row_dict):
 def save_visit_entry(visit_dict):
     try:
         client = get_gspread_client()
-        sheet = client.open(SPREADSHEET_NAME)
+        sheet = client.open_by_key(SPREADSHEET_ID)
         ws_visit = sheet.worksheet("Visit History")
         ws_visit.append_row(list(visit_dict.values()))
         return True
@@ -104,7 +107,7 @@ def save_visit_entry(visit_dict):
 # Load Data
 df_master, df_visit, connection_status = fetch_data()
 
-# Ensure Datetime conversions for filtering
+# Parse Datetime for Filter Helper
 if not df_master.empty and 'Date' in df_master.columns:
     df_master['Date_Parsed'] = pd.to_datetime(df_master['Date'], errors='coerce')
 
@@ -132,7 +135,7 @@ nav_option = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 
-# Global Date / Month Filter in Sidebar
+# Global Date / Month Filter
 st.sidebar.subheader("📅 Date / Month Filter")
 filter_type = st.sidebar.selectbox("Filter Data By:", ["All Time", "Select Month/Year", "Custom Date Range"])
 
@@ -149,7 +152,7 @@ elif filter_type == "Custom Date Range":
     if len(date_range) == 2:
         start_date, end_date = date_range[0], date_range[1]
 
-# Apply Filter Helper
+# Apply Filter Helper Function
 def filter_dataframe(df, date_col):
     if df.empty or date_col not in df.columns:
         return df
@@ -158,7 +161,7 @@ def filter_dataframe(df, date_col):
     
     if filter_type == "Select Month/Year" and selected_month and selected_year:
         if 'Month' in filtered_df.columns:
-            filtered_df = filtered_df[(filtered_df['Month'] == selected_month) & (filtered_df[date_col].str.contains(str(selected_year), na=False))]
+            filtered_df = filtered_df[(filtered_df['Month'] == selected_month) & (filtered_df[date_col].astype(str).str.contains(str(selected_year), na=False))]
     elif filter_type == "Custom Date Range" and start_date and end_date:
         parsed_col = date_col + '_Parsed'
         if parsed_col in filtered_df.columns:
@@ -340,12 +343,12 @@ elif nav_option == "🔧 Technician - Job Visit":
                     visit_timestamp = datetime.now()
                     visit_time_str = visit_timestamp.strftime("%Y-%m-%d %H:%M:%S")
                     
-                    # Calculate duration from JS ID creation date
+                    # Time Calculation from JS creation timestamp
                     js_created_str = str(job_info['Date'])
                     try:
                         js_created_dt = pd.to_datetime(js_created_str)
                         time_diff_seconds = int((visit_timestamp - js_created_dt).total_seconds())
-                        duration_display = f"{time_diff_seconds} Seconds ({round(time_diff_seconds/3600, 2)} Hours)"
+                        duration_display = f"{time_diff_seconds} Sec ({round(time_diff_seconds/3600, 2)} Hrs)"
                     except:
                         duration_display = "N/A"
 
@@ -374,7 +377,6 @@ elif nav_option == "📊 View All Jobs (Master Sheet)":
     filtered_master = filter_dataframe(df_master, 'Date')
     
     if not filtered_master.empty:
-        # Drop internal parsed column before showing
         display_df = filtered_master.drop(columns=['Date_Parsed'], errors='ignore')
         st.dataframe(display_df, use_container_width=True)
     else:
