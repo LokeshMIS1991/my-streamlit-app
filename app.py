@@ -2,7 +2,10 @@ import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
 from datetime import datetime
+import io
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -34,7 +37,6 @@ st.markdown("""
 # ==========================================
 # AUTHENTICATION & LOGIN SYSTEM
 # ==========================================
-# Default Passwords for Roles
 USER_CREDENTIALS = {
     "Admin": "admin123",
     "HOD": "hod123",
@@ -96,6 +98,30 @@ def get_gspread_client():
     if creds:
         return gspread.authorize(creds)
     return None
+
+def upload_photo_to_drive(uploaded_file, filename):
+    try:
+        drive_service = build('drive', 'v3', credentials=creds)
+        folder_id = st.secrets.get("FOLDER_ID", "")
+        
+        file_metadata = {
+            'name': filename,
+            'parents': [folder_id] if folder_id else []
+        }
+        
+        media = MediaIoBaseUpload(io.BytesIO(uploaded_file.getvalue()), mimetype=uploaded_file.type)
+        file = drive_service.files().create(body=file_metadata, media_body=media, fields='id, webViewLink').execute()
+        
+        # Make photo viewable via link
+        drive_service.permissions().create(
+            fileId=file.get('id'),
+            body={'role': 'reader', 'type': 'anyone'}
+        ).execute()
+        
+        return file.get('webViewLink')
+    except Exception as e:
+        st.error(f"Drive Upload Error: {e}")
+        return ""
 
 SPREADSHEET_NAME = "Sidharth Shutter CRM Master"
 
@@ -169,18 +195,8 @@ if st.sidebar.button("🚪 Logout"):
 
 st.sidebar.markdown("---")
 
-# Navigation Options Based on Role
 available_options = []
-
-if current_role == "Admin":
-    available_options = [
-        "📈 Executive Dashboard",
-        "👔 Manager - Create / Edit Job",
-        "🔧 Technician - Job Visit",
-        "📊 View All Jobs (Master Sheet)",
-        "📜 View Visit History Database"
-    ]
-elif current_role == "HOD":
+if current_role in ["Admin", "HOD"]:
     available_options = [
         "📈 Executive Dashboard",
         "👔 Manager - Create / Edit Job",
@@ -224,20 +240,16 @@ if current_role in ["Admin", "HOD"]:
     def filter_dataframe(df, date_col):
         if df.empty or date_col not in df.columns:
             return df
-        
         filtered_df = df.copy()
-        
         if filter_mode == "By Month & Year":
             if selected_month != "All" and 'Month' in filtered_df.columns:
                 filtered_df = filtered_df[filtered_df['Month'] == selected_month]
             if selected_year != "All":
                 filtered_df = filtered_df[filtered_df[date_col].astype(str).str.contains(str(selected_year), na=False)]
-                
         elif filter_mode == "Date Range" and start_date and end_date:
             parsed_col = date_col + '_Parsed'
             if parsed_col in filtered_df.columns:
                 filtered_df = filtered_df[(filtered_df[parsed_col].dt.date >= start_date) & (filtered_df[parsed_col].dt.date <= end_date)]
-                
         return filtered_df
 else:
     def filter_dataframe(df, date_col):
@@ -265,7 +277,6 @@ st.markdown("<div class='sub-header'>Field Operations & Service Operations Porta
 # 1. EXECUTIVE DASHBOARD
 if nav_option == "📈 Executive Dashboard":
     st.subheader("📊 Executive Operations & Performance Dashboard")
-    
     filtered_master = filter_dataframe(df_master, 'Date')
     
     total_jobs = len(filtered_master) if not filtered_master.empty else 0
@@ -402,8 +413,18 @@ elif nav_option == "🔧 Technician - Job Visit":
             credit_person = c6.text_input("If Credit, Person Name")
             
             remarks = st.text_area("Technician Remarks")
-            doc_no = st.text_input("Challan / Invoice / Doc No.")
-            photo_url = st.text_input("Photo Drive Link (Optional)")
+            
+            st.markdown("---")
+            st.caption("📷 **Optional Attachments / Photo Upload (Camera / Gallery):**")
+            
+            doc_c1, doc_c2 = st.columns(2)
+            doc_no = doc_c1.text_input("Job Sheet Slip / Challan / Doc No. (Optional)")
+            
+            # CAMERA / GALLERY FILE UPLOADER
+            uploaded_photo = doc_c2.file_uploader(
+                "Upload Site Photo / Slip (Camera or Gallery)", 
+                type=["png", "jpg", "jpeg"]
+            )
             
             visit_submit = st.form_submit_button("💾 Submit Visit Log")
             
@@ -417,7 +438,14 @@ elif nav_option == "🔧 Technician - Job Visit":
                     visit_timestamp = datetime.now()
                     visit_time_str = visit_timestamp.strftime("%Y-%m-%d %H:%M:%S")
                     
-                    # Time Calculation from JS creation timestamp
+                    # Upload Photo to Google Drive if selected
+                    photo_url = ""
+                    if uploaded_photo is not None:
+                        photo_filename = f"{selected_js_id}_Visit{visit_no}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+                        st.info("📤 Uploading photo to Google Drive...")
+                        photo_url = upload_photo_to_drive(uploaded_photo, photo_filename)
+                    
+                    # Time Calculation
                     js_created_str = str(job_info['Date'])
                     try:
                         js_created_dt = pd.to_datetime(js_created_str)
@@ -443,6 +471,8 @@ elif nav_option == "🔧 Technician - Job Visit":
                     
                     if save_visit_entry(visit_log):
                         st.success(f"✅ Visit #{visit_no} Logged Successfully for **{selected_js_id}**! Total Duration: {duration_display}")
+                        if photo_url:
+                            st.success(f"📸 Photo Saved to Google Drive! Link: {photo_url}")
                         st.rerun()
 
 # 4. VIEW MASTER SHEET
@@ -463,6 +493,12 @@ elif nav_option == "📜 View Visit History Database":
     
     if not filtered_visit.empty:
         display_visit_df = filtered_visit.drop(columns=['Visit_Date_Parsed'], errors='ignore')
-        st.dataframe(display_visit_df, use_container_width=True)
+        st.dataframe(
+            display_visit_df, 
+            column_config={
+                "Photo URL": st.column_config.LinkColumn("Photo Link")
+            },
+            use_container_width=True
+        )
     else:
         st.info("No visit records matching selected filters.")
