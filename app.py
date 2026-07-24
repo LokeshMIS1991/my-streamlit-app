@@ -327,7 +327,7 @@ elif nav_option == "👔 Manager - Create / Edit Job":
         job_category = c7.selectbox("Job Category", ["New Installation", "Complaint / Repair", "AMC", "Inspection"])
         
         c8, c9, c10 = st.columns(3)
-        service_scope = c8.selectbox("Service Scope", ["Under Warranty", "Chargeable Service", "FOC Visit", "Trial Visit"])
+        service_scope = c8.selectbox("Service Scope", ["Under Warranty", "Chargeable Service", "FOC Visit", "Trial Visit", "Dealer", "Client", "General"])
         qty = c9.number_input("Quantity", min_value=1, value=1)
         warranty = c10.selectbox("Warranty Status", ["In Warranty", "Out of Warranty", "Not Applicable"])
         
