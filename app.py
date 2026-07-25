@@ -11,116 +11,102 @@ import io
 # PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(
-    page_title="Sidharth Shutters - Operations Portal",
+    page_title="Sidharth Shutters - Enterprise Portal",
     page_icon="⚙️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ==========================================
-# CUSTOM CSS & STYLING
+# CUSTOM CSS & ENTERPRISE STYLING
 # ==========================================
 st.markdown("""
     <style>
-    /* Main Background Accent */
-    .stApp {
-        background-color: #F8FAFC;
+    /* Google Fonts Import */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
-    
-    /* Login Card Styling */
-    .login-container {
-        max-width: 450px;
-        margin: 0 auto;
-        padding: 30px;
+
+    /* Overall App Background Gradient */
+    .stApp {
+        background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
+    }
+
+    /* Modern Login Container */
+    .login-wrapper {
+        max-width: 420px;
+        margin: 40px auto 0 auto;
         background: #FFFFFF;
         border-radius: 16px;
-        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.08);
-        border: 1px solid #E2E8F0;
-        text-align: center;
+        padding: 32px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        border: 1px solid #CBD5E1;
     }
-    
-    /* Brand Header Box */
-    .brand-header {
-        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
-        padding: 24px 20px;
+
+    /* Corporate Brand Header */
+    .brand-card {
+        background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
         border-radius: 12px;
-        color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        padding: 24px 20px;
+        text-align: center;
+        color: #FFFFFF;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 15px -3px rgba(30, 58, 138, 0.3);
     }
-    .brand-title {
-        font-size: 22px;
+    .brand-card h2 {
+        font-size: 20px;
         font-weight: 700;
-        letter-spacing: 0.5px;
         margin: 0;
+        color: #FFFFFF !important;
+        letter-spacing: 0.5px;
     }
-    .brand-subtitle {
-        font-size: 13px;
+    .brand-card p {
+        font-size: 12px;
         color: #93C5FD;
-        margin-top: 4px;
-        font-weight: 400;
+        margin: 4px 0 0 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    /* Input Field Labels */
-    .stSelectbox label, .stTextInput label {
-        font-weight: 600 !important;
-        color: #334155 !important;
-        font-size: 14px !important;
-    }
-
-    /* Custom Primary Button */
+    /* Custom Button Styling */
     div.stButton > button {
         background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 12px 20px !important;
+        color: #FFFFFF !important;
         font-weight: 600 !important;
-        font-size: 16px !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25) !important;
+        font-size: 15px !important;
+        border-radius: 8px !important;
+        border: none !important;
+        padding: 10px 20px !important;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+        transition: all 0.2s ease-in-out !important;
     }
     div.stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.35) !important;
     }
-    
-    /* Footer Security Badge */
-    .security-badge {
-        font-size: 12px;
-        color: #94A3B8;
-        margin-top: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-    }
-    
-    /* Portal General Headers */
-    .main-header {
-        font-size: 26px;
-        font-weight: bold;
-        color: #1E3A8A;
-        padding-bottom: 5px;
-    }
-    .sub-header {
-        font-size: 14px;
-        color: #6B7280;
-        margin-bottom: 20px;
-    }
+
+    /* Field Info Card Styling */
     .client-card {
-        background-color: #F8FAFC;
-        padding: 18px;
-        border-radius: 10px;
-        border-left: 5px solid #1E3A8A;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        margin-bottom: 20px;
+        background: #FFFFFF;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #E2E8F0;
+        border-left: 6px solid #1E3A8A;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+    }
+
+    /* Section Divider Line */
+    hr {
+        border-top: 1px solid #CBD5E1 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# CONSTANTS & LISTS
+# CONSTANTS & MASTER LISTS
 # ==========================================
 ALL_STATES = [
     "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
@@ -155,9 +141,6 @@ ALL_SERVICE_SCOPES = [
     "Trial Visit"
 ]
 
-# ==========================================
-# AUTHENTICATION & LOGIN SYSTEM
-# ==========================================
 USER_CREDENTIALS = {
     "Admin": "admin123",
     "HOD": "hod123",
@@ -165,65 +148,48 @@ USER_CREDENTIALS = {
     "Technician": "tech123"
 }
 
+# ==========================================
+# AUTHENTICATION & LOGIN UI
+# ==========================================
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 if 'user_role' not in st.session_state:
     st.session_state['user_role'] = None
 
-def login_screen():
-    # Top spacing for centering
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 1.2, 1])
-    
+def render_login_screen():
+    col1, col2, col3 = st.columns([1, 1.1, 1])
     with col2:
-        # Header Container
         st.markdown("""
-            <div class="brand-header">
-                <div style="font-size: 36px; margin-bottom: 8px;">⚙️</div>
-                <div class="brand-title">Sidharth Shutters</div>
-                <div class="brand-subtitle">Field Operations & Service Portal</div>
+            <div class="login-wrapper">
+                <div class="brand-card">
+                    <div style="font-size: 32px; margin-bottom: 6px;">⚙️</div>
+                    <h2>Sidharth Shutters</h2>
+                    <p>Field Operations Portal</p>
+                </div>
             </div>
         """, unsafe_allow_html=True)
         
-        # Form Container
-        with st.container():
-            role = st.selectbox(
-                "👤 Select Role:", 
-                ["Admin", "HOD", "Manager", "Technician"],
-                index=3
-            )
-            
-            password = st.text_input(
-                "🔑 Enter Password:", 
-                type="password",
-                placeholder="••••••••"
-            )
-            
+        with st.form("login_form"):
+            role = st.selectbox("👤 Select Designation / Role", ["Admin", "HOD", "Manager", "Technician"], index=3)
+            password = st.text_input("🔑 Passcode", type="password", placeholder="Enter authorization key")
             st.markdown("<br>", unsafe_allow_html=True)
             
-            if st.button("🚀 Secure Login", use_container_width=True):
+            submit_login = st.form_submit_button("🔒 Authorize Access", use_container_width=True)
+            if submit_login:
                 if USER_CREDENTIALS.get(role) == password:
                     st.session_state['logged_in'] = True
                     st.session_state['user_role'] = role
-                    st.success(f"Welcome {role}! Access Granted.")
+                    st.success(f"Welcome {role}! Loading environment...")
                     st.rerun()
                 else:
-                    st.error("❌ Incorrect Password. Please check and try again.")
-        
-        # Security Footer
-        st.markdown("""
-            <div class="security-badge">
-                🔒 256-Bit Encrypted Operations Access
-            </div>
-        """, unsafe_allow_html=True)
+                    st.error("❌ Invalid Passcode. Access Denied.")
 
 if not st.session_state['logged_in']:
-    login_screen()
+    render_login_screen()
     st.stop()
 
 # ==========================================
-# CONNECTIONS & AUTHENTICATION
+# GOOGLE SHEETS & DRIVE API CONNECTION
 # ==========================================
 SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -239,7 +205,7 @@ def get_service_account_credentials():
         creds = Credentials.from_service_account_info(secret_dict, scopes=SCOPE)
         return creds
     except Exception as e:
-        st.error(f"❌ GCP Credentials Error: {e}")
+        st.error(f"❌ GCP Credentials Configuration Error: {e}")
         return None
 
 creds = get_service_account_credentials()
@@ -255,7 +221,7 @@ def upload_photo_to_drive(uploaded_file, filename):
         folder_id = st.secrets.get("FOLDER_ID", "")
         
         if not folder_id:
-            st.error("❌ FOLDER_ID is missing in secrets.toml!")
+            st.error("❌ Drive FOLDER_ID configuration missing!")
             return ""
 
         file_metadata = {
@@ -282,7 +248,7 @@ def upload_photo_to_drive(uploaded_file, filename):
         
         return file.get('webViewLink')
     except Exception as e:
-        st.error(f"Drive Upload Error: {e}")
+        st.error(f"Drive Cloud Upload Exception: {e}")
         return ""
 
 SPREADSHEET_NAME = "Sidharth Shutter CRM Master"
@@ -305,7 +271,7 @@ def fetch_data():
         
         return df_master, df_visit, True
     except Exception as e:
-        st.sidebar.error(f"Error fetching Sheets: {str(e)}")
+        st.sidebar.error(f"Database Fetch Failed: {str(e)}")
         return pd.DataFrame(), pd.DataFrame(), False
 
 def save_master_job(new_row_dict):
@@ -316,7 +282,7 @@ def save_master_job(new_row_dict):
         ws_master.append_row(list(new_row_dict.values()))
         return True
     except Exception as e:
-        st.error(f"Save Error: {e}")
+        st.error(f"Job Creation Failed: {e}")
         return False
 
 def save_visit_entry(visit_dict):
@@ -327,11 +293,10 @@ def save_visit_entry(visit_dict):
         ws_visit.append_row(list(visit_dict.values()))
         return True
     except Exception as e:
-        st.error(f"Visit Save Error: {e}")
+        st.error(f"Visit Log Failed: {e}")
         return False
 
 def update_master_on_visit(js_id, visit_count, status, installer_name, close_time):
-    """Update Master Sheet Total Visits, Status, Installer Name, and Close Date"""
     try:
         client = get_gspread_client()
         sheet = client.open(SPREADSHEET_NAME)
@@ -350,10 +315,10 @@ def update_master_on_visit(js_id, visit_count, status, installer_name, close_tim
                 ws_master.update_cell(row_idx, 16, "In Progress")
         return True
     except Exception as e:
-        st.warning(f"Master Sheet Auto-Update Warning: {e}")
+        st.warning(f"Auto-Sync Warning: {e}")
         return False
 
-# Load Data
+# Data Initialization
 df_master, df_visit, connection_status = fetch_data()
 
 if not df_master.empty and 'Date' in df_master.columns:
@@ -363,16 +328,16 @@ if not df_visit.empty and 'Visit Date' in df_visit.columns:
     df_visit['Visit_Date_Parsed'] = pd.to_datetime(df_visit['Visit Date'], errors='coerce')
 
 # ==========================================
-# SIDEBAR NAVIGATION & ROLE PERMISSIONS
+# SIDEBAR NAVIGATION & FILTERS
 # ==========================================
-st.sidebar.image("https://img.icons8.com/color/96/000000/worker-male.png", width=60)
-st.sidebar.title("SIDHARTH")
-st.sidebar.caption("SHUTTER & AUTOMATION")
+st.sidebar.image("https://img.icons8.com/color/96/000000/worker-male.png", width=50)
+st.sidebar.markdown("### **SIDHARTH SHUTTERS**")
+st.sidebar.caption("Automation & Security Systems")
 
 current_role = st.session_state['user_role']
-st.sidebar.info(f"👤 Logged in as: **{current_role}**")
+st.sidebar.info(f"👤 Account Role: **{current_role}**")
 
-if st.sidebar.button("🚪 Logout"):
+if st.sidebar.button("🚪 Terminate Session"):
     st.session_state['logged_in'] = False
     st.session_state['user_role'] = None
     st.rerun()
@@ -383,83 +348,46 @@ available_options = []
 if current_role in ["Admin", "HOD"]:
     available_options = [
         "📈 Executive Dashboard",
-        "👔 Manager - Create / Edit Job",
-        "🔧 Technician - Job Visit",
-        "📊 View All Jobs (Master Sheet)",
-        "📜 View Visit History Database"
+        "👔 Manager - Job Operations",
+        "🔧 Technician - Field Visit",
+        "📊 Master Jobs Database",
+        "📜 Visit History Database"
     ]
 elif current_role == "Manager":
     available_options = [
-        "👔 Manager - Create / Edit Job",
-        "🔧 Technician - Job Visit"
+        "👔 Manager - Job Operations",
+        "🔧 Technician - Field Visit"
     ]
 elif current_role == "Technician":
     available_options = [
-        "🔧 Technician - Job Visit"
+        "🔧 Technician - Field Visit"
     ]
 
-nav_option = st.sidebar.radio("Navigation Options:", available_options)
+nav_option = st.sidebar.radio("Navigation Menu:", available_options)
 
 st.sidebar.markdown("---")
 
-if current_role in ["Admin", "HOD"]:
-    st.sidebar.subheader("📅 Data Filters")
-    filter_mode = st.sidebar.radio("Filter By:", ["All Data", "By Month & Year", "Date Range"])
+def filter_dataframe(df, date_col):
+    return df
 
-    selected_month = "All"
-    selected_year = "All"
-    start_date = None
-    end_date = None
-
-    if filter_mode == "By Month & Year":
-        selected_month = st.sidebar.selectbox("Select Month", ["All", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], index=datetime.now().month)
-        selected_year = st.sidebar.selectbox("Select Year", ["All", 2024, 2025, 2026, 2027], index=3)
-
-    elif filter_mode == "Date Range":
-        date_range = st.sidebar.date_input("Select Start & End Date", [])
-        if len(date_range) == 2:
-            start_date, end_date = date_range[0], date_range[1]
-
-    def filter_dataframe(df, date_col):
-        if df.empty or date_col not in df.columns:
-            return df
-        filtered_df = df.copy()
-        if filter_mode == "By Month & Year":
-            if selected_month != "All" and 'Month' in filtered_df.columns:
-                filtered_df = filtered_df[filtered_df['Month'] == selected_month]
-            if selected_year != "All":
-                filtered_df = filtered_df[filtered_df[date_col].astype(str).str.contains(str(selected_year), na=False)]
-        elif filter_mode == "Date Range" and start_date and end_date:
-            parsed_col = date_col + '_Parsed'
-            if parsed_col in filtered_df.columns:
-                filtered_df = filtered_df[(filtered_df[parsed_col].dt.date >= start_date) & (filtered_df[parsed_col].dt.date <= end_date)]
-        return filtered_df
-else:
-    def filter_dataframe(df, date_col):
-        return df
-
-st.sidebar.markdown("---")
 if connection_status:
-    st.sidebar.success("🟢 Google Sheets Connected")
+    st.sidebar.success("🟢 Cloud Sync Active")
 else:
     st.sidebar.error("🔴 Connection Failed")
 
-if st.sidebar.button("🔄 Refresh Data"):
+if st.sidebar.button("🔄 Force Data Refresh"):
     st.cache_data.clear()
     st.rerun()
 
-st.sidebar.caption("© Sidharth Shutters & Automations Pvt. Ltd.")
-
 # ==========================================
-# MAIN INTERFACE LOGIC
+# MAIN INTERFACE CONTROLLER
 # ==========================================
-
-st.markdown("<div class='main-header'>Sidharth Shutters & Automations Private Limited</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-header'>Field Operations & Service Operations Portal</div>", unsafe_allow_html=True)
+st.markdown("<h2 style='color: #0F172A; margin-bottom: 2px;'>Sidharth Shutters & Automations Pvt. Ltd.</h2>", unsafe_allow_html=True)
+st.markdown("<p style='color: #64748B; font-size: 14px; margin-bottom: 25px;'>Enterprise Operations & Field Service Portal</p>", unsafe_allow_html=True)
 
 # 1. EXECUTIVE DASHBOARD
 if nav_option == "📈 Executive Dashboard":
-    st.subheader("📊 Executive Operations & Performance Dashboard")
+    st.subheader("📊 Operational Analytics & Performance Overview")
     filtered_master = filter_dataframe(df_master, 'Date')
     
     total_jobs = len(filtered_master) if not filtered_master.empty else 0
@@ -468,62 +396,62 @@ if nav_option == "📈 Executive Dashboard":
     completion_rate = round((completed_jobs / total_jobs * 100), 1) if total_jobs > 0 else 0
     
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("📌 Total JS IDs Generated", total_jobs)
-    col2.metric("🟢 Completed Jobs", completed_jobs, f"{completion_rate}% Done")
-    col3.metric("🟡 Pending Jobs", pending_jobs)
-    col4.metric("⚙️ Service Completion Rate", f"{completion_rate}%")
+    col1.metric("📌 Job Sheets Generated", total_jobs)
+    col2.metric("🟢 Completed Projects", completed_jobs, f"{completion_rate}% Efficiency")
+    col3.metric("🟡 Pending / In Progress", pending_jobs)
+    col4.metric("⚙️ SLA Resolution Rate", f"{completion_rate}%")
     
     st.markdown("---")
     c1, c2 = st.columns(2)
     with c1:
-        st.write("🏷️ **Jobs Breakdown by Category**")
+        st.write("🏷️ **Categorical Distribution**")
         if not filtered_master.empty and 'Job Category' in filtered_master.columns:
             st.bar_chart(filtered_master['Job Category'].value_counts())
         else:
-            st.info("No data available.")
+            st.info("No records to visualize.")
             
     with c2:
-        st.write("🎯 **Jobs Breakdown by Service Scope**")
+        st.write("🎯 **Service Scope Classification**")
         if not filtered_master.empty and 'Service Scope' in filtered_master.columns:
             st.bar_chart(filtered_master['Service Scope'].value_counts())
         else:
-            st.info("No data available.")
+            st.info("No records to visualize.")
 
 # 2. MANAGER PORTAL
-elif nav_option == "👔 Manager - Create / Edit Job":
-    st.subheader("👔 Manager Portal: Job Sheet Management")
+elif nav_option == "👔 Manager - Job Operations":
+    st.subheader("👔 Job Sheet Creation & Lifecycle Control")
     
-    manager_action = st.radio("Select Action:", ["➕ Create New Job Sheet", "✏️ Edit Existing Job Details"], horizontal=True)
+    manager_action = st.radio("Select Workflow:", ["➕ Generate New Job Sheet", "✏️ Modify Existing Order"], horizontal=True)
     
-    if manager_action == "➕ Create New Job Sheet":
+    if manager_action == "➕ Generate New Job Sheet":
         with st.form("create_job_form"):
             c1, c2 = st.columns(2)
-            client_name = c1.text_input("Client Name *")
-            project_name = c2.text_input("Project / Site Name")
+            client_name = c1.text_input("Client Entity / Name *")
+            project_name = c2.text_input("Project / Site Location Label")
             
             c3, c4 = st.columns(2)
-            contact_no = c3.text_input("Contact Number *")
-            location = c4.text_input("Location / City")
+            contact_no = c3.text_input("Primary Contact Number *")
+            location = c4.text_input("City / District")
             
-            address = st.text_area("Full Address")
+            address = st.text_area("Complete Site Address")
             
             c5, c6, c7 = st.columns(3)
-            state = c5.selectbox("State", ALL_STATES)
-            product = c6.selectbox("Product", ALL_PRODUCTS)
-            job_category = c7.selectbox("Job Category", ["New Installation", "Complaint / Repair", "AMC", "Inspection"])
+            state = c5.selectbox("State Territory", ALL_STATES)
+            product = c6.selectbox("Product Line", ALL_PRODUCTS)
+            job_category = c7.selectbox("Order Category", ["New Installation", "Complaint / Repair", "AMC", "Inspection"])
             
             c8, c9, c10 = st.columns(3)
             service_scope = c8.selectbox("Service Scope", ALL_SERVICE_SCOPES)
-            qty = c9.number_input("Quantity", min_value=1, value=1)
-            warranty = c10.selectbox("Warranty Status", ["In Warranty", "Out of Warranty", "Not Applicable"])
+            qty = c9.number_input("Unit Quantity", min_value=1, value=1)
+            warranty = c10.selectbox("Warranty Terms", ["In Warranty", "Out of Warranty", "Not Applicable"])
             
-            office_remark = st.text_area("Office Remark / Special Instructions")
+            office_remark = st.text_area("Operations / Technical Directives")
             
-            submit_btn = st.form_submit_button("🚀 Generate & Save JS ID")
+            submit_btn = st.form_submit_button("🚀 Dispatch & Generate Job Sheet ID")
             
             if submit_btn:
                 if not client_name or not contact_no:
-                    st.error("Please fill Client Name and Contact Number.")
+                    st.error("Client Name and Primary Contact details are mandatory.")
                 else:
                     next_id_num = len(df_master) + 1 if not df_master.empty else 1
                     js_id = f"JS-{datetime.now().strftime('%Y%m')}-{next_id_num:03d}"
@@ -553,30 +481,30 @@ elif nav_option == "👔 Manager - Create / Edit Job":
                     }
                     
                     if save_master_job(new_job):
-                        st.success(f"🎉 Job Sheet **{js_id}** created successfully!")
+                        st.success(f"🎉 Job Sheet **{js_id}** committed to database.")
                         st.balloons()
                         st.cache_data.clear()
 
-    elif manager_action == "✏️ Edit Existing Job Details":
+    elif manager_action == "✏️ Modify Existing Order":
         if df_master.empty or 'JS ID' not in df_master.columns:
-            st.warning("No Master Jobs available to edit.")
+            st.warning("No recorded jobs found in database.")
         else:
             js_list = df_master['JS ID'].astype(str).tolist()
-            selected_edit_js = st.selectbox("Select JS ID to Edit:", js_list)
+            selected_edit_js = st.selectbox("Select Target Job ID:", js_list)
             
             job_data = df_master[df_master['JS ID'].astype(str) == selected_edit_js].iloc[0]
             
-            st.info(f"👤 **Client:** {job_data.get('Client Name', '')} | 📍 **Location:** {job_data.get('Location', '')} | 📅 **Date:** {job_data.get('Date', '')}")
+            st.info(f"👤 **Client:** {job_data.get('Client Name', '')} | 📍 **Location:** {job_data.get('Location', '')} | 📅 **Creation Date:** {job_data.get('Date', '')}")
             
             with st.form("edit_job_manager_form"):
                 ec1, ec2 = st.columns(2)
-                updated_status = ec1.selectbox("Current Status", ["Pending", "In Progress", "Completed", "On Hold", "Cancelled"], 
+                updated_status = ec1.selectbox("Updated Status Flag", ["Pending", "In Progress", "Completed", "On Hold", "Cancelled"], 
                                                index=["Pending", "In Progress", "Completed", "On Hold", "Cancelled"].index(job_data.get('Current Status', 'Pending')) if job_data.get('Current Status') in ["Pending", "In Progress", "Completed", "On Hold", "Cancelled"] else 0)
-                updated_installer = ec2.text_input("Final Installer Name", value=str(job_data.get('Final Installer', '')))
+                updated_installer = ec2.text_input("Lead Lead Lead Technician / Engineer", value=str(job_data.get('Final Installer', '')))
                 
-                updated_office_remark = st.text_area("Office Remark / Special Instructions", value=str(job_data.get('Office Remark', '')))
+                updated_office_remark = st.text_area("Updated Directive Notes", value=str(job_data.get('Office Remark', '')))
                 
-                edit_submit = st.form_submit_button("🔄 Update Job Details")
+                edit_submit = st.form_submit_button("🔄 Commit Order Updates")
                 
                 if edit_submit:
                     try:
@@ -593,58 +521,45 @@ elif nav_option == "👔 Manager - Create / Edit Job":
                         if updated_status == "Completed":
                             ws_master.update_cell(row_idx, 19, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                             
-                        st.success(f"✅ Job Sheet **{selected_edit_js}** updated successfully!")
+                        st.success(f"✅ Job Record **{selected_edit_js}** updated.")
                         st.cache_data.clear()
                     except Exception as e:
-                        st.error(f"Failed to update Job: {e}")
+                        st.error(f"Sync Failure: {e}")
 
-# 3. TECHNICIAN VISIT PORTAL
-elif nav_option == "🔧 Technician - Job Visit":
-    st.subheader("🔧 Technician Portal: Log Site Visit")
+# 3. TECHNICIAN FIELD VISIT PORTAL
+elif nav_option == "🔧 Technician - Field Visit":
+    st.subheader("🔧 Field Operations: Log Site Inspection & Service")
     
     if df_master.empty or 'JS ID' not in df_master.columns:
-        st.warning("No Job IDs available. Please create a Job from Manager Portal first.")
+        st.warning("No Job IDs logged. Manager action required.")
     else:
         pending_js_ids = df_master['JS ID'].astype(str).tolist()
-        selected_js_id = st.selectbox("Select JS ID for Visit:", pending_js_ids)
+        selected_js_id = st.selectbox("Select Assigned JS ID:", pending_js_ids)
         
         job_info = df_master[df_master['JS ID'].astype(str) == selected_js_id].iloc[0]
         
-        # Customer Details Card
+        # Customer Card Summary
         st.markdown(f"""
             <div class="client-card">
-                <h4 style="margin-top: 0; color: #1E3A8A;">📋 Job Sheet Details: {selected_js_id}</h4>
-                <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-                    <div><b>👤 Client Name:</b> {job_info.get('Client Name', 'N/A')}</div>
-                    <div><b>📞 Contact:</b> {job_info.get('Contact Number', 'N/A')}</div>
-                    <div><b>📍 Location:</b> {job_info.get('Location', 'N/A')} ({job_info.get('State', 'N/A')})</div>
-                    <div><b>⚙️ Product:</b> {job_info.get('Product', 'N/A')}</div>
-                    <div><b>🏷️ Category:</b> {job_info.get('Job Category', 'N/A')}</div>
-                    <div><b>🛠️ Service Scope:</b> {job_info.get('Service Scope', 'N/A')}</div>
+                <h4 style="margin: 0 0 10px 0; color: #0F172A;">📌 Order Specification: {selected_js_id}</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 14px;">
+                    <div><b>Client:</b> {job_info.get('Client Name', 'N/A')}</div>
+                    <div><b>Contact:</b> {job_info.get('Contact Number', 'N/A')}</div>
+                    <div><b>Location:</b> {job_info.get('Location', 'N/A')} ({job_info.get('State', 'N/A')})</div>
+                    <div><b>Product:</b> {job_info.get('Product', 'N/A')}</div>
+                    <div><b>Category:</b> {job_info.get('Job Category', 'N/A')}</div>
+                    <div><b>Scope:</b> {job_info.get('Service Scope', 'N/A')}</div>
                 </div>
-                <div style="margin-top: 10px;"><b>🏠 Full Address:</b> {job_info.get('Address', 'N/A')}</div>
-                <div style="margin-top: 5px; color: #D97706;"><b>📝 Office Remarks:</b> {job_info.get('Office Remark', 'None')}</div>
+                <div style="margin-top: 10px; font-size: 13px;"><b>Address:</b> {job_info.get('Address', 'N/A')}</div>
+                <div style="margin-top: 6px; font-size: 13px; color: #D97706;"><b>Instructions:</b> {job_info.get('Office Remark', 'None')}</div>
             </div>
         """, unsafe_allow_html=True)
         
-        # Previous Visit History
-        if not df_visit.empty and 'JS ID' in df_visit.columns:
-            js_previous_visits = df_visit[df_visit['JS ID'].astype(str) == selected_js_id]
-            if not js_previous_visits.empty:
-                with st.expander(f"📜 View Previous Visit Logs for {selected_js_id} ({len(js_previous_visits)} Visits Done)", expanded=False):
-                    st.dataframe(
-                        js_previous_visits[['Visit No', 'Visit Date', 'Installer Name', 'Status', 'Reason', 'Remarks', 'Photo URL']], 
-                        column_config={
-                            "Photo URL": st.column_config.LinkColumn("Photo Link")
-                        },
-                        use_container_width=True
-                    )
-        
-        # Form: Log Visit Details
-        st.markdown("##### 📝 Log New Visit Entry")
+        # Log Site Entry Form
+        st.markdown("##### 📝 Submit Service Visit Report")
         c1, c2 = st.columns(2)
-        installer_name = c1.text_input("Technician / Installer Name *")
-        status = c2.selectbox("Visit Outcome Status", ["In Progress / Pending", "Completed", "Partially Done", "Cancelled"])
+        installer_name = c1.text_input("Lead Technician Name *")
+        status = c2.selectbox("Site Work Outcome", ["In Progress / Pending", "Completed", "Partially Done", "Cancelled"])
         
         reasons_list = [
             "Site Not Ready",
@@ -658,42 +573,35 @@ elif nav_option == "🔧 Technician - Job Visit":
             "Installation Complete",
             "Other"
         ]
-        selected_reason = st.selectbox("Reason / Work Done Category *", reasons_list)
+        selected_reason = st.selectbox("Work Category / Resolution *", reasons_list)
         
         other_reason_text = ""
         if selected_reason == "Other":
-            other_reason_text = st.text_input("Specify Other Reason *")
+            other_reason_text = st.text_input("Specify Work Category *")
             
         final_reason = other_reason_text if selected_reason == "Other" else selected_reason
         
         c5, c6 = st.columns(2)
-        payment_mode = c5.selectbox("Payment Mode", ["N/A", "None / Included", "Cash", "UPI / Digital", "Credit / Due"])
+        payment_mode = c5.selectbox("Payment Collection Channel", ["N/A", "None / Included", "Cash", "UPI / Digital", "Credit / Due"])
         
-        # Conditional Credit Person Display
         credit_person = "N/A"
         if payment_mode == "Credit / Due":
-            credit_person = c6.text_input("Person Name (Care Of / Credit) *")
+            credit_person = c6.text_input("Credit Authorized Person (Care Of) *")
         else:
-            c6.text_input("Person Name (Care Of / Credit)", value="N/A", disabled=True)
+            c6.text_input("Credit Authorized Person", value="N/A", disabled=True)
         
-        remarks = st.text_area("Technician Remarks")
+        remarks = st.text_area("Field Remarks / Observations")
         
         st.markdown("---")
-        st.caption("📷 **Optional Attachments / Photo Upload (Camera / Gallery):**")
-        
         doc_c1, doc_c2 = st.columns(2)
-        doc_no = doc_c1.text_input("Job Sheet Slip / Challan / Doc No. (Optional)")
+        doc_no = doc_c1.text_input("Service Slip / Challan ID (Optional)")
+        uploaded_photo = doc_c2.file_uploader("Upload Verification Image (Slip/Site)", type=["png", "jpg", "jpeg"])
         
-        uploaded_photo = doc_c2.file_uploader(
-            "Upload Site Photo / Slip (Camera or Gallery)", 
-            type=["png", "jpg", "jpeg"]
-        )
-        
-        if st.button("💾 Submit Visit Log", use_container_width=True):
+        if st.button("💾 Submit Visit Report", use_container_width=True):
             if not installer_name:
-                st.error("Please fill Technician Name.")
+                st.error("Please specify Technician Name.")
             elif payment_mode == "Credit / Due" and (not credit_person or credit_person == "N/A"):
-                st.error("Please mention the Person Name for Credit payment.")
+                st.error("Please enter the name of the Credit Authorized Person.")
             else:
                 existing_visits = len(df_visit[df_visit['JS ID'].astype(str) == selected_js_id]) if not df_visit.empty else 0
                 visit_no = existing_visits + 1
@@ -704,7 +612,7 @@ elif nav_option == "🔧 Technician - Job Visit":
                 photo_url = ""
                 if uploaded_photo is not None:
                     photo_filename = f"{selected_js_id}_Visit{visit_no}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
-                    st.info("📤 Uploading photo to Google Drive...")
+                    st.info("📤 Syncing image artifact with Google Drive...")
                     photo_url = upload_photo_to_drive(uploaded_photo, photo_filename)
                 
                 js_created_str = str(job_info['Date'])
@@ -731,7 +639,6 @@ elif nav_option == "🔧 Technician - Job Visit":
                 }
                 
                 if save_visit_entry(visit_log):
-                    # AUTO-UPDATE MASTER SHEET DETAILS
                     update_master_on_visit(
                         js_id=selected_js_id, 
                         visit_count=visit_no, 
@@ -740,35 +647,33 @@ elif nav_option == "🔧 Technician - Job Visit":
                         close_time=visit_time_str
                     )
                     
-                    st.success(f"✅ Visit #{visit_no} Logged Successfully for **{selected_js_id}**! Master Sheet Updated.")
+                    st.success(f"✅ Visit Entry #{visit_no} recorded for **{selected_js_id}**.")
                     if photo_url:
-                        st.success(f"📸 Photo Saved to Google Drive! Link: {photo_url}")
+                        st.success(f"📸 Image Documented: {photo_url}")
                     st.cache_data.clear()
 
-# 4. VIEW MASTER SHEET
-elif nav_option == "📊 View All Jobs (Master Sheet)":
-    st.subheader("📊 Master Job Database (Read Only)")
+# 4. VIEW MASTER DATABASE
+elif nav_option == "📊 Master Jobs Database":
+    st.subheader("📊 Central Master Orders Sheet")
     filtered_master = filter_dataframe(df_master, 'Date')
     
     if not filtered_master.empty:
         display_df = filtered_master.drop(columns=['Date_Parsed'], errors='ignore')
         st.dataframe(display_df, use_container_width=True)
     else:
-        st.info("No data matching selected filters.")
+        st.info("No records present.")
 
 # 5. VIEW VISIT HISTORY
-elif nav_option == "📜 View Visit History Database":
-    st.subheader("📜 Technician Visit Logs (Read Only)")
+elif nav_option == "📜 Visit History Database":
+    st.subheader("📜 Complete Technician Visit History")
     filtered_visit = filter_dataframe(df_visit, 'Visit Date')
     
     if not filtered_visit.empty:
         display_visit_df = filtered_visit.drop(columns=['Visit_Date_Parsed'], errors='ignore')
         st.dataframe(
             display_visit_df, 
-            column_config={
-                "Photo URL": st.column_config.LinkColumn("Photo Link")
-            },
+            column_config={"Photo URL": st.column_config.LinkColumn("Artifact Link")},
             use_container_width=True
         )
     else:
-        st.info("No visit records matching selected filters.")
+        st.info("No records present.")
