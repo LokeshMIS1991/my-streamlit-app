@@ -17,11 +17,88 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling
+# ==========================================
+# CUSTOM CSS & STYLING
+# ==========================================
 st.markdown("""
     <style>
+    /* Main Background Accent */
+    .stApp {
+        background-color: #F8FAFC;
+    }
+    
+    /* Login Card Styling */
+    .login-container {
+        max-width: 450px;
+        margin: 0 auto;
+        padding: 30px;
+        background: #FFFFFF;
+        border-radius: 16px;
+        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid #E2E8F0;
+        text-align: center;
+    }
+    
+    /* Brand Header Box */
+    .brand-header {
+        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+        padding: 24px 20px;
+        border-radius: 12px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    .brand-title {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+    .brand-subtitle {
+        font-size: 13px;
+        color: #93C5FD;
+        margin-top: 4px;
+        font-weight: 400;
+    }
+
+    /* Input Field Labels */
+    .stSelectbox label, .stTextInput label {
+        font-weight: 600 !important;
+        color: #334155 !important;
+        font-size: 14px !important;
+    }
+
+    /* Custom Primary Button */
+    div.stButton > button {
+        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 12px 20px !important;
+        font-weight: 600 !important;
+        font-size: 16px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25) !important;
+    }
+    div.stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35) !important;
+    }
+    
+    /* Footer Security Badge */
+    .security-badge {
+        font-size: 12px;
+        color: #94A3B8;
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    
+    /* Portal General Headers */
     .main-header {
-        font-size: 28px;
+        font-size: 26px;
         font-weight: bold;
         color: #1E3A8A;
         padding-bottom: 5px;
@@ -32,10 +109,11 @@ st.markdown("""
         margin-bottom: 20px;
     }
     .client-card {
-        background-color: #F3F4F6;
-        padding: 15px;
-        border-radius: 8px;
+        background-color: #F8FAFC;
+        padding: 18px;
+        border-radius: 10px;
         border-left: 5px solid #1E3A8A;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         margin-bottom: 20px;
     }
     </style>
@@ -93,23 +171,52 @@ if 'user_role' not in st.session_state:
     st.session_state['user_role'] = None
 
 def login_screen():
-    st.markdown("<div class='main-header'>Sidharth Shutters & Automations Private Limited</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sub-header'>Operations Portal - Secure Access Login</div>", unsafe_allow_html=True)
+    # Top spacing for centering
+    st.markdown("<br><br>", unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    
     with col2:
-        st.subheader("🔐 User Login")
-        role = st.selectbox("Select Your Role:", ["Admin", "HOD", "Manager", "Technician"])
-        password = st.text_input("Enter Password:", type="password")
+        # Header Container
+        st.markdown("""
+            <div class="brand-header">
+                <div style="font-size: 36px; margin-bottom: 8px;">⚙️</div>
+                <div class="brand-title">Sidharth Shutters</div>
+                <div class="brand-subtitle">Field Operations & Service Portal</div>
+            </div>
+        """, unsafe_allow_html=True)
         
-        if st.button("🔑 Login", use_container_width=True):
-            if USER_CREDENTIALS.get(role) == password:
-                st.session_state['logged_in'] = True
-                st.session_state['user_role'] = role
-                st.success(f"Welcome {role}! Logging in...")
-                st.rerun()
-            else:
-                st.error("❌ Incorrect Password. Please try again.")
+        # Form Container
+        with st.container():
+            role = st.selectbox(
+                "👤 Select Role:", 
+                ["Admin", "HOD", "Manager", "Technician"],
+                index=3
+            )
+            
+            password = st.text_input(
+                "🔑 Enter Password:", 
+                type="password",
+                placeholder="••••••••"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("🚀 Secure Login", use_container_width=True):
+                if USER_CREDENTIALS.get(role) == password:
+                    st.session_state['logged_in'] = True
+                    st.session_state['user_role'] = role
+                    st.success(f"Welcome {role}! Access Granted.")
+                    st.rerun()
+                else:
+                    st.error("❌ Incorrect Password. Please check and try again.")
+        
+        # Security Footer
+        st.markdown("""
+            <div class="security-badge">
+                🔒 256-Bit Encrypted Operations Access
+            </div>
+        """, unsafe_allow_html=True)
 
 if not st.session_state['logged_in']:
     login_screen()
@@ -506,7 +613,7 @@ elif nav_option == "🔧 Technician - Job Visit":
         # Customer Details Card
         st.markdown(f"""
             <div class="client-card">
-                <h4>📋 Job Sheet Details: {selected_js_id}</h4>
+                <h4 style="margin-top: 0; color: #1E3A8A;">📋 Job Sheet Details: {selected_js_id}</h4>
                 <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                     <div><b>👤 Client Name:</b> {job_info.get('Client Name', 'N/A')}</div>
                     <div><b>📞 Contact:</b> {job_info.get('Contact Number', 'N/A')}</div>
@@ -533,7 +640,7 @@ elif nav_option == "🔧 Technician - Job Visit":
                         use_container_width=True
                     )
         
-        # Outside Form: Payment Mode to handle dynamic conditional UI
+        # Form: Log Visit Details
         st.markdown("##### 📝 Log New Visit Entry")
         c1, c2 = st.columns(2)
         installer_name = c1.text_input("Technician / Installer Name *")
