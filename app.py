@@ -171,13 +171,10 @@ if 'user_role' not in st.session_state:
     st.session_state['user_role'] = None
 
 def login_screen():
-    # Top spacing for centering
     st.markdown("<br><br>", unsafe_allow_html=True)
-    
     col1, col2, col3 = st.columns([1, 1.2, 1])
     
     with col2:
-        # Header Container
         st.markdown("""
             <div class="brand-header">
                 <div style="font-size: 36px; margin-bottom: 8px;">⚙️</div>
@@ -186,7 +183,6 @@ def login_screen():
             </div>
         """, unsafe_allow_html=True)
         
-        # Form Container
         with st.container():
             role = st.selectbox(
                 "👤 Select Role:", 
@@ -211,7 +207,6 @@ def login_screen():
                 else:
                     st.error("❌ Incorrect Password. Please check and try again.")
         
-        # Security Footer
         st.markdown("""
             <div class="security-badge">
                 🔒 256-Bit Encrypted Operations Access
@@ -331,7 +326,6 @@ def save_visit_entry(visit_dict):
         return False
 
 def update_master_on_visit(js_id, visit_count, status, installer_name, close_time):
-    """Update Master Sheet Total Visits, Status, Installer Name, and Close Date"""
     try:
         client = get_gspread_client()
         sheet = client.open(SPREADSHEET_NAME)
@@ -557,6 +551,28 @@ elif nav_option == "👔 Manager - Create / Edit Job":
                         st.balloons()
                         st.cache_data.clear()
 
+        # ==========================================
+        # RECENT 10 ENTRIES VIEW (ADDED FOR MANAGER)
+        # ==========================================
+        st.markdown("---")
+        st.subheader("📋 Recently Created Job Sheets (Latest 10 Entries)")
+        
+        if not df_master.empty:
+            # Sort by latest created (using index or original order reversed)
+            recent_df = df_master.tail(10).iloc[::-1].copy()
+            
+            # Select only required columns if they exist
+            required_cols = ["JS ID", "Client Name", "Project Name", "Contact Number", "Product", "Office Remark"]
+            available_show_cols = [col for col in required_cols if col in recent_df.columns]
+            
+            st.dataframe(
+                recent_df[available_show_cols], 
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("No job entries found yet.")
+
     elif manager_action == "✏️ Edit Existing Job Details":
         if df_master.empty or 'JS ID' not in df_master.columns:
             st.warning("No Master Jobs available to edit.")
@@ -610,7 +626,6 @@ elif nav_option == "🔧 Technician - Job Visit":
         
         job_info = df_master[df_master['JS ID'].astype(str) == selected_js_id].iloc[0]
         
-        # Customer Details Card
         st.markdown(f"""
             <div class="client-card">
                 <h4 style="margin-top: 0; color: #1E3A8A;">📋 Job Sheet Details: {selected_js_id}</h4>
@@ -627,7 +642,6 @@ elif nav_option == "🔧 Technician - Job Visit":
             </div>
         """, unsafe_allow_html=True)
         
-        # Previous Visit History
         if not df_visit.empty and 'JS ID' in df_visit.columns:
             js_previous_visits = df_visit[df_visit['JS ID'].astype(str) == selected_js_id]
             if not js_previous_visits.empty:
@@ -640,7 +654,6 @@ elif nav_option == "🔧 Technician - Job Visit":
                         use_container_width=True
                     )
         
-        # Form: Log Visit Details
         st.markdown("##### 📝 Log New Visit Entry")
         c1, c2 = st.columns(2)
         installer_name = c1.text_input("Technician / Installer Name *")
@@ -669,7 +682,6 @@ elif nav_option == "🔧 Technician - Job Visit":
         c5, c6 = st.columns(2)
         payment_mode = c5.selectbox("Payment Mode", ["N/A", "None / Included", "Cash", "UPI / Digital", "Credit / Due"])
         
-        # Conditional Credit Person Display
         credit_person = "N/A"
         if payment_mode == "Credit / Due":
             credit_person = c6.text_input("Person Name (Care Of / Credit) *")
@@ -731,7 +743,6 @@ elif nav_option == "🔧 Technician - Job Visit":
                 }
                 
                 if save_visit_entry(visit_log):
-                    # AUTO-UPDATE MASTER SHEET DETAILS
                     update_master_on_visit(
                         js_id=selected_js_id, 
                         visit_count=visit_no, 
