@@ -17,13 +17,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Logo Path or URL
+LOGO_PATH = "Company Logo.jpeg"
+
 # ==========================================
-# CUSTOM CSS & THEME STYLING (LOGO Theme)
+# CUSTOM CSS & THEME STYLING
 # ==========================================
-# Primary Navy Blue: #0E3B82
-# Accent Blue: #1565C0
-# Accent Green (Logo Dot): #00A859
-# Neutral Background: #F4F6F9
 st.markdown("""
     <style>
     /* Main Background Accent */
@@ -43,15 +42,16 @@ st.markdown("""
         text-align: center;
     }
     
-    /* Brand Header Box (Logo Blue Gradient + Green Accent Line) */
+    /* Brand Header Box */
     .brand-header {
         background: linear-gradient(135deg, #0E3B82 0%, #1565C0 100%);
-        padding: 24px 20px;
+        padding: 20px;
         border-radius: 12px;
         color: white;
         margin-bottom: 25px;
         box-shadow: 0 4px 12px rgba(14, 59, 130, 0.25);
         border-bottom: 4px solid #00A859;
+        text-align: center;
     }
     .brand-title {
         font-size: 24px;
@@ -76,7 +76,7 @@ st.markdown("""
         font-size: 14px !important;
     }
 
-    /* Custom Primary Button with Green Hover Accent */
+    /* Custom Primary Button */
     div.stButton > button {
         background: linear-gradient(135deg, #0E3B82 0%, #1565C0 100%) !important;
         color: white !important;
@@ -107,7 +107,7 @@ st.markdown("""
     
     /* Portal General Headers */
     .main-header {
-        font-size: 28px;
+        font-size: 26px;
         font-weight: 800;
         color: #0E3B82;
         padding-bottom: 2px;
@@ -191,13 +191,18 @@ if 'user_role' not in st.session_state:
     st.session_state['user_role'] = None
 
 def login_screen():
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1.2, 1])
     
     with col2:
+        # DISPLAY COMPANY LOGO IN LOGIN SCREEN
+        try:
+            st.image(LOGO_PATH, use_container_width=True)
+        except Exception:
+            pass
+
         st.markdown("""
             <div class="brand-header">
-                <div style="font-size: 36px; margin-bottom: 8px;">⚙️</div>
                 <div class="brand-title">SIDHARTH</div>
                 <div class="brand-subtitle">SHUTTER & AUTOMATION</div>
             </div>
@@ -379,9 +384,12 @@ if not df_visit.empty and 'Visit Date' in df_visit.columns:
 # ==========================================
 # SIDEBAR NAVIGATION & ROLE PERMISSIONS
 # ==========================================
-st.sidebar.image("https://img.icons8.com/color/96/000000/worker-male.png", width=60)
-st.sidebar.title("SIDHARTH")
-st.sidebar.caption("SHUTTER & AUTOMATION")
+# DISPLAY LOGO IN NAVIGATION SIDEBAR
+try:
+    st.sidebar.image(LOGO_PATH, use_container_width=True)
+except Exception:
+    st.sidebar.title("SIDHARTH")
+    st.sidebar.caption("SHUTTER & AUTOMATION")
 
 current_role = st.session_state['user_role']
 st.sidebar.info(f"👤 Logged in as: **{current_role}**")
@@ -468,8 +476,16 @@ st.sidebar.caption("© Sidharth Shutters & Automations Pvt. Ltd.")
 # MAIN INTERFACE LOGIC
 # ==========================================
 
-st.markdown("<div class='main-header'>Sidharth Shutters & Automations Private Limited</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-header'>Field Operations & Service Operations Portal</div>", unsafe_allow_html=True)
+# TOP HEADER WITH LOGO
+head_col1, head_col2 = st.columns([1, 4])
+with head_col1:
+    try:
+        st.image(LOGO_PATH, width=150)
+    except Exception:
+        pass
+with head_col2:
+    st.markdown("<div class='main-header'>Sidharth Shutters & Automations Private Limited</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sub-header'>Field Operations & Service Operations Portal</div>", unsafe_allow_html=True)
 
 # 1. EXECUTIVE DASHBOARD
 if nav_option == "📈 Executive Dashboard":
@@ -571,17 +587,12 @@ elif nav_option == "👔 Manager - Create / Edit Job":
                         st.balloons()
                         st.cache_data.clear()
 
-        # ==========================================
-        # RECENT 10 ENTRIES VIEW (ADDED FOR MANAGER)
-        # ==========================================
+        # RECENT 10 ENTRIES VIEW
         st.markdown("---")
         st.subheader("📋 Recently Created Job Sheets (Latest 10 Entries)")
         
         if not df_master.empty:
-            # Sort by latest created (using index or original order reversed)
             recent_df = df_master.tail(10).iloc[::-1].copy()
-            
-            # Select only required columns if they exist
             required_cols = ["JS ID", "Client Name", "Project Name", "Contact Number", "Product", "Office Remark"]
             available_show_cols = [col for col in required_cols if col in recent_df.columns]
             
