@@ -18,13 +18,17 @@ st.set_page_config(
 )
 
 # ==========================================
-# CUSTOM CSS & STYLING
+# CUSTOM CSS & THEME STYLING (LOGO Theme)
 # ==========================================
+# Primary Navy Blue: #0E3B82
+# Accent Blue: #1565C0
+# Accent Green (Logo Dot): #00A859
+# Neutral Background: #F4F6F9
 st.markdown("""
     <style>
     /* Main Background Accent */
     .stApp {
-        background-color: #F8FAFC;
+        background-color: #F4F6F9;
     }
     
     /* Login Card Styling */
@@ -34,43 +38,47 @@ st.markdown("""
         padding: 30px;
         background: #FFFFFF;
         border-radius: 16px;
-        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.08);
-        border: 1px solid #E2E8F0;
+        box-shadow: 0px 10px 30px rgba(14, 59, 130, 0.08);
+        border: 1px solid #E0E6ED;
         text-align: center;
     }
     
-    /* Brand Header Box */
+    /* Brand Header Box (Logo Blue Gradient + Green Accent Line) */
     .brand-header {
-        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+        background: linear-gradient(135deg, #0E3B82 0%, #1565C0 100%);
         padding: 24px 20px;
         border-radius: 12px;
         color: white;
         margin-bottom: 25px;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        box-shadow: 0 4px 12px rgba(14, 59, 130, 0.25);
+        border-bottom: 4px solid #00A859;
     }
     .brand-title {
-        font-size: 22px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
         margin: 0;
+        color: #FFFFFF;
+        text-transform: uppercase;
     }
     .brand-subtitle {
         font-size: 13px;
-        color: #93C5FD;
+        color: #B3D4FF;
         margin-top: 4px;
-        font-weight: 400;
+        font-weight: 500;
+        letter-spacing: 0.5px;
     }
 
     /* Input Field Labels */
-    .stSelectbox label, .stTextInput label {
+    .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label {
         font-weight: 600 !important;
-        color: #334155 !important;
+        color: #0E3B82 !important;
         font-size: 14px !important;
     }
 
-    /* Custom Primary Button */
+    /* Custom Primary Button with Green Hover Accent */
     div.stButton > button {
-        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%) !important;
+        background: linear-gradient(135deg, #0E3B82 0%, #1565C0 100%) !important;
         color: white !important;
         border: none !important;
         border-radius: 8px !important;
@@ -78,17 +86,18 @@ st.markdown("""
         font-weight: 600 !important;
         font-size: 16px !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25) !important;
+        box-shadow: 0 4px 10px rgba(14, 59, 130, 0.2) !important;
     }
     div.stButton > button:hover {
+        background: linear-gradient(135deg, #1565C0 0%, #00A859 100%) !important;
         transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35) !important;
+        box-shadow: 0 6px 15px rgba(0, 168, 89, 0.3) !important;
     }
     
     /* Footer Security Badge */
     .security-badge {
         font-size: 12px;
-        color: #94A3B8;
+        color: #64748B;
         margin-top: 20px;
         display: flex;
         align-items: center;
@@ -98,23 +107,34 @@ st.markdown("""
     
     /* Portal General Headers */
     .main-header {
-        font-size: 26px;
-        font-weight: bold;
-        color: #1E3A8A;
-        padding-bottom: 5px;
+        font-size: 28px;
+        font-weight: 800;
+        color: #0E3B82;
+        padding-bottom: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .sub-header {
         font-size: 14px;
-        color: #6B7280;
+        color: #00A859;
+        font-weight: 700;
         margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .client-card {
-        background-color: #F8FAFC;
+        background-color: #FFFFFF;
         padding: 18px;
         border-radius: 10px;
-        border-left: 5px solid #1E3A8A;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border-left: 6px solid #0E3B82;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         margin-bottom: 20px;
+    }
+    
+    /* Sidebar Specific Styling */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF;
+        border-right: 1px solid #E2E8F0;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -178,8 +198,8 @@ def login_screen():
         st.markdown("""
             <div class="brand-header">
                 <div style="font-size: 36px; margin-bottom: 8px;">⚙️</div>
-                <div class="brand-title">Sidharth Shutters</div>
-                <div class="brand-subtitle">Field Operations & Service Portal</div>
+                <div class="brand-title">SIDHARTH</div>
+                <div class="brand-subtitle">SHUTTER & AUTOMATION</div>
             </div>
         """, unsafe_allow_html=True)
         
@@ -628,7 +648,7 @@ elif nav_option == "🔧 Technician - Job Visit":
         
         st.markdown(f"""
             <div class="client-card">
-                <h4 style="margin-top: 0; color: #1E3A8A;">📋 Job Sheet Details: {selected_js_id}</h4>
+                <h4 style="margin-top: 0; color: #0E3B82;">📋 Job Sheet Details: {selected_js_id}</h4>
                 <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                     <div><b>👤 Client Name:</b> {job_info.get('Client Name', 'N/A')}</div>
                     <div><b>📞 Contact:</b> {job_info.get('Contact Number', 'N/A')}</div>
