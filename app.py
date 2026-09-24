@@ -6,6 +6,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 from datetime import datetime
 import io
+import os
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -17,77 +18,158 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Logo Path or URL
-LOGO_PATH = "Company Logo.jpeg"
+# Safe Logo Loader
+def load_logo():
+    possible_names = [
+        "Company Logo.jpeg", "Company Logo.jpg", "Company Logo.png",
+        "company_logo.jpeg", "company_logo.jpg", "company_logo.png",
+        "logo.jpeg", "logo.jpg", "logo.png"
+    ]
+    for filename in possible_names:
+        if os.path.exists(filename):
+            return filename
+    return None
+
+LOGO_PATH = load_logo()
 
 # ==========================================
-# CUSTOM CSS & THEME STYLING
+# ENHANCED BRAND CUSTOM CSS
 # ==========================================
 st.markdown("""
     <style>
-    /* Main Background Accent */
-    .stApp {
-        background-color: #F4F6F9;
-    }
+    /* Google Font Import */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     
-    /* Login Card Styling */
-    .login-container {
-        max-width: 450px;
-        margin: 0 auto;
-        padding: 30px;
-        background: #FFFFFF;
-        border-radius: 16px;
-        box-shadow: 0px 10px 30px rgba(14, 59, 130, 0.08);
-        border: 1px solid #E0E6ED;
-        text-align: center;
-    }
-    
-    /* Brand Header Box */
-    .brand-header {
-        background: linear-gradient(135deg, #0E3B82 0%, #1565C0 100%);
-        padding: 20px;
-        border-radius: 12px;
-        color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 12px rgba(14, 59, 130, 0.25);
-        border-bottom: 4px solid #00A859;
-        text-align: center;
-    }
-    .brand-title {
-        font-size: 24px;
-        font-weight: 800;
-        letter-spacing: 0.8px;
-        margin: 0;
-        color: #FFFFFF;
-        text-transform: uppercase;
-    }
-    .brand-subtitle {
-        font-size: 13px;
-        color: #B3D4FF;
-        margin-top: 4px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
 
-    /* Input Field Labels */
+    /* Main App Background */
+    .stApp {
+        background-color: #F8FAFC;
+    }
+    
+    /* Elegant Logo Container Card */
+    .logo-card {
+        background: #FFFFFF;
+        padding: 24px 20px;
+        border-radius: 16px;
+        box-shadow: 0px 8px 24px rgba(14, 59, 130, 0.08);
+        border: 1px solid #E2E8F0;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .logo-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 12px 28px rgba(14, 59, 130, 0.12);
+    }
+
+    /* Top Executive Header Bar */
+    .app-header-container {
+        background: #FFFFFF;
+        border-radius: 16px;
+        padding: 16px 24px;
+        box-shadow: 0px 4px 20px rgba(14, 59, 130, 0.05);
+        border-left: 6px solid #0E3B82;
+        border-right: 1px solid #E2E8F0;
+        border-top: 1px solid #E2E8F0;
+        border-bottom: 1px solid #E2E8F0;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+    }
+    .main-header {
+        font-size: 24px;
+        font-weight: 800;
+        color: #0E3B82;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin: 0;
+    }
+    .sub-header {
+        font-size: 13px;
+        color: #00A859;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-top: 3px;
+    }
+
+    /* SIDEBAR BLUE THEME ENHANCEMENTS */
+    [data-testid="stSidebar"] {
+        background-color: #0E3B82 !important;
+        border-right: 1px solid #1E40AF;
+    }
+    
+    /* Sidebar Text & Header Color Fixes */
+    [data-testid="stSidebar"] *, [data-testid="stSidebar"] label, [data-testid="stSidebar"] p {
+        color: #FFFFFF !important;
+    }
+    
+    /* Sidebar Radio Options Styling */
+    [data-testid="stSidebar"] div[role="radiogroup"] > label {
+        background-color: rgba(255, 255, 255, 0.08);
+        padding: 10px 16px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.25s ease !important;
+        cursor: pointer;
+    }
+    
+    /* Hover on Sidebar Options */
+    [data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+        background-color: #1565C0 !important;
+        border-color: #00A859 !important;
+        transform: translateX(4px);
+    }
+    
+    /* Logout & Secondary Buttons in Sidebar */
+    [data-testid="stSidebar"] button {
+        background: #1565C0 !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+    }
+    [data-testid="stSidebar"] button:hover {
+        background: #00A859 !important;
+        border-color: #00A859 !important;
+    }
+
+    /* INPUT FIELDS STYLING */
     .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label {
         font-weight: 600 !important;
         color: #0E3B82 !important;
         font-size: 14px !important;
     }
+    .stTextInput input, .stSelectbox > div, .stTextArea textarea {
+        border-radius: 8px !important;
+        border: 1px solid #CBD5E1 !important;
+    }
+    .stTextInput input:focus, .stTextArea textarea:focus {
+        border-color: #0E3B82 !important;
+        box-shadow: 0 0 0 2px rgba(14, 59, 130, 0.2) !important;
+    }
 
-    /* Custom Primary Button */
+    /* PRIMARY ACTION BUTTONS & HOVER EFFECT */
     div.stButton > button {
         background: linear-gradient(135deg, #0E3B82 0%, #1565C0 100%) !important;
         color: white !important;
         border: none !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
         padding: 12px 20px !important;
         font-weight: 600 !important;
         font-size: 16px !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 4px 10px rgba(14, 59, 130, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(14, 59, 130, 0.2) !important;
     }
+    
+    /* BUTTON HOVER EFFECT */
     div.stButton > button:hover {
         background: linear-gradient(135deg, #1565C0 0%, #00A859 100%) !important;
         transform: translateY(-2px);
@@ -98,43 +180,30 @@ st.markdown("""
     .security-badge {
         font-size: 12px;
         color: #64748B;
-        margin-top: 20px;
+        margin-top: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
     }
-    
-    /* Portal General Headers */
-    .main-header {
-        font-size: 26px;
-        font-weight: 800;
-        color: #0E3B82;
-        padding-bottom: 2px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .sub-header {
-        font-size: 14px;
-        color: #00A859;
-        font-weight: 700;
-        margin-bottom: 20px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+
+    /* Client Details Card (Technician Screen) */
     .client-card {
         background-color: #FFFFFF;
-        padding: 18px;
-        border-radius: 10px;
+        padding: 20px;
+        border-radius: 12px;
         border-left: 6px solid #0E3B82;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        margin-bottom: 24px;
+        border-right: 1px solid #E2E8F0;
+        border-top: 1px solid #E2E8F0;
+        border-bottom: 1px solid #E2E8F0;
     }
     
-    /* Sidebar Specific Styling */
-    [data-testid="stSidebar"] {
-        background-color: #FFFFFF;
-        border-right: 1px solid #E2E8F0;
+    /* Metric Cards Styling */
+    [data-testid="stMetricValue"] {
+        color: #0E3B82 !important;
+        font-weight: 800 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -191,23 +260,18 @@ if 'user_role' not in st.session_state:
     st.session_state['user_role'] = None
 
 def login_screen():
-    st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1.2, 1])
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    _, col2, _ = st.columns([1, 1.1, 1])
     
     with col2:
-        # DISPLAY COMPANY LOGO IN LOGIN SCREEN
-        try:
+        # Sleek Brand Logo Box
+        if LOGO_PATH:
+            st.markdown('<div class="logo-card">', unsafe_allow_html=True)
             st.image(LOGO_PATH, use_container_width=True)
-        except Exception:
-            pass
+            st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.warning("⚠️ Logo image missing. Please save 'Company Logo.jpeg' in root directory.")
 
-        st.markdown("""
-            <div class="brand-header">
-                <div class="brand-title">SIDHARTH</div>
-                <div class="brand-subtitle">SHUTTER & AUTOMATION</div>
-            </div>
-        """, unsafe_allow_html=True)
-        
         with st.container():
             role = st.selectbox(
                 "👤 Select Role:", 
@@ -384,22 +448,20 @@ if not df_visit.empty and 'Visit Date' in df_visit.columns:
 # ==========================================
 # SIDEBAR NAVIGATION & ROLE PERMISSIONS
 # ==========================================
-# DISPLAY LOGO IN NAVIGATION SIDEBAR
-try:
+if LOGO_PATH:
+    st.sidebar.markdown('<div style="background:#FFFFFF; padding:12px; border-radius:12px; margin-bottom:15px;">', unsafe_allow_html=True)
     st.sidebar.image(LOGO_PATH, use_container_width=True)
-except Exception:
-    st.sidebar.title("SIDHARTH")
-    st.sidebar.caption("SHUTTER & AUTOMATION")
+    st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
 current_role = st.session_state['user_role']
-st.sidebar.info(f"👤 Logged in as: **{current_role}**")
+st.sidebar.info(f"👤 Role: **{current_role}**")
 
-if st.sidebar.button("🚪 Logout"):
+if st.sidebar.button("🚪 Logout", use_container_width=True):
     st.session_state['logged_in'] = False
     st.session_state['user_role'] = None
     st.rerun()
 
-st.sidebar.markdown("---")
+st.sidebar.markdown("<hr style='border-color: rgba(255,255,255,0.2);'>", unsafe_allow_html=True)
 
 available_options = []
 if current_role in ["Admin", "HOD"]:
@@ -420,9 +482,9 @@ elif current_role == "Technician":
         "🔧 Technician - Job Visit"
     ]
 
-nav_option = st.sidebar.radio("Navigation Options:", available_options)
+nav_option = st.sidebar.radio("📌 Navigation Menu", available_options)
 
-st.sidebar.markdown("---")
+st.sidebar.markdown("<hr style='border-color: rgba(255,255,255,0.2);'>", unsafe_allow_html=True)
 
 if current_role in ["Admin", "HOD"]:
     st.sidebar.subheader("📅 Data Filters")
@@ -460,32 +522,36 @@ else:
     def filter_dataframe(df, date_col):
         return df
 
-st.sidebar.markdown("---")
+st.sidebar.markdown("<hr style='border-color: rgba(255,255,255,0.2);'>", unsafe_allow_html=True)
 if connection_status:
     st.sidebar.success("🟢 Google Sheets Connected")
 else:
     st.sidebar.error("🔴 Connection Failed")
 
-if st.sidebar.button("🔄 Refresh Data"):
+if st.sidebar.button("🔄 Refresh Data", use_container_width=True):
     st.cache_data.clear()
     st.rerun()
 
-st.sidebar.caption("© Sidharth Shutters & Automations Pvt. Ltd.")
+st.sidebar.caption("© Sidharth Shutters & Automations")
 
 # ==========================================
-# MAIN INTERFACE LOGIC
+# MAIN INTERFACE TOP HEADER
 # ==========================================
+head_col1, head_col2 = st.columns([1, 4.5])
 
-# TOP HEADER WITH LOGO
-head_col1, head_col2 = st.columns([1, 4])
 with head_col1:
-    try:
-        st.image(LOGO_PATH, width=150)
-    except Exception:
-        pass
+    if LOGO_PATH:
+        st.image(LOGO_PATH, width=140)
+
 with head_col2:
-    st.markdown("<div class='main-header'>Sidharth Shutters & Automations Private Limited</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sub-header'>Field Operations & Service Operations Portal</div>", unsafe_allow_html=True)
+    st.markdown("""
+        <div class="app-header-container">
+            <div>
+                <div class="main-header">Sidharth Shutters & Automations</div>
+                <div class="sub-header">Field Operations & Service Operations Portal</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
 # 1. EXECUTIVE DASHBOARD
 if nav_option == "📈 Executive Dashboard":
@@ -501,7 +567,7 @@ if nav_option == "📈 Executive Dashboard":
     col1.metric("📌 Total JS IDs Generated", total_jobs)
     col2.metric("🟢 Completed Jobs", completed_jobs, f"{completion_rate}% Done")
     col3.metric("🟡 Pending Jobs", pending_jobs)
-    col4.metric("⚙️ Service Completion Rate", f"{completion_rate}%")
+    col4.metric("⚙️ Completion Rate", f"{completion_rate}%")
     
     st.markdown("---")
     c1, c2 = st.columns(2)
@@ -587,7 +653,6 @@ elif nav_option == "👔 Manager - Create / Edit Job":
                         st.balloons()
                         st.cache_data.clear()
 
-        # RECENT 10 ENTRIES VIEW
         st.markdown("---")
         st.subheader("📋 Recently Created Job Sheets (Latest 10 Entries)")
         
@@ -666,7 +731,7 @@ elif nav_option == "🔧 Technician - Job Visit":
                     <div><b>📍 Location:</b> {job_info.get('Location', 'N/A')} ({job_info.get('State', 'N/A')})</div>
                     <div><b>⚙️ Product:</b> {job_info.get('Product', 'N/A')}</div>
                     <div><b>🏷️ Category:</b> {job_info.get('Job Category', 'N/A')}</div>
-                    <div><b>🛠️ Service Scope:</b> {job_info.get('Service Scope', 'N/A')}</div>
+                    <div><b>🛠️ Scope:</b> {job_info.get('Service Scope', 'N/A')}</div>
                 </div>
                 <div style="margin-top: 10px;"><b>🏠 Full Address:</b> {job_info.get('Address', 'N/A')}</div>
                 <div style="margin-top: 5px; color: #D97706;"><b>📝 Office Remarks:</b> {job_info.get('Office Remark', 'None')}</div>
